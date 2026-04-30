@@ -1,0 +1,18 @@
+.customize-section-heading {
+    padding: 14px 20px 14px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: #efefef52;
+    margin: -16px -20px 0;
+    border-bottom: 1px solid #f1f1f1;
+    color: #2271b1;
+}
+
+.customize-section-heading .customize-control-title {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #2271b1;
+    font-weight: 500;
+    line-height: 1.3;
+}
