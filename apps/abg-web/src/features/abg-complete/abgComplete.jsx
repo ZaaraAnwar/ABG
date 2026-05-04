@@ -444,7 +444,7 @@ export default function ABGTutor() {
         .abg-center { display: flex; flex-direction: column; }
 
         .interp-box {
-          background: #e0e0e0;
+          background: transparent;
           min-height: 280px;
           padding: 18px 16px 20px;
           text-align: center;
@@ -458,7 +458,7 @@ export default function ABGTutor() {
         }
         .interp-body { font-size: 18px; line-height: 1.55; }
 
-        .sliders-box { background: #d4d4d4; padding: 14px 14px 26px; }
+        .sliders-box { background:transparent; padding: 14px 14px 26px; }
         .s-row       { margin-bottom: 14px; }
         .s-row:last-child { margin-bottom: 0; }
         .s-label { font-size: 17px; margin-bottom: 2px; }
@@ -558,7 +558,18 @@ export default function ABGTutor() {
         }
       `}</style>
 
-      <div className="abg-root">
+      <div
+        className="abg-root"
+        style={{
+          fontFamily: "'Segoe UI', system-ui, sans-serif",
+          background: "#fff",
+          padding: "24px",
+          width: "100%",
+          maxWidth: "100%",
+          margin: 0,
+          boxSizing: "border-box",
+        }}
+      >
         <div className="abg-grid">
           {/* LEFT – PaCO₂ */}
           <div className="abg-side">
@@ -602,7 +613,7 @@ export default function ABGTutor() {
             >
               {flowUrl && (
                 <div
-                  onClick={() => window.open(flowUrl, "_blank")}
+                  onClick={() => (window.location.href = flowUrl)}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -686,7 +697,7 @@ export default function ABGTutor() {
                   <div className="popup-title">Extended ABG</div>
                   <button
                     className="popup-btn"
-                    onClick={() => window.open(extTarget.url, "_blank")}
+                    onClick={() => (window.location.href = extTarget.url)}
                   >
                     {extTarget.label}
                   </button>
