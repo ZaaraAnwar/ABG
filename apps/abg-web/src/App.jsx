@@ -11,7 +11,7 @@ import AnionGap from "./features/abg-complete/AnionGap";
 import NormalAnionGap from "./features/abg-complete/NormalAnionGap";
 import DeltaDelta from "./features/abg-complete/DeltaDelta";
 import PressureUnits from "./features/pressureunits";
-import ABGTutor from "./features/abg-complete/ABGTutor";
+import ABGTutor from "./features/abg-complete/abgComplete";
 import VentilatorPanel from "./features/ag-tutor/agtutor";
 import AGTutor from "./features/ag-tutor/agtutor";
 import OxygenDissociationCurve from "./features/odc/Oxygendissociationcurve";
