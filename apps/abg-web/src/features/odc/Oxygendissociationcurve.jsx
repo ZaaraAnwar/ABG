@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react"; // added useEffect
 
 import OdcCanvas from "./OdcCanvas";
 import HeartRateControl from "./HeartRateControl";
@@ -8,7 +8,23 @@ import ResultsPanel from "./ResultsPanel";
 
 import { hillSat, getP50 } from "./odcMath";
 
+// 📱 tiny hook — reused across files
+function useWindowWidth() {
+  const [width, setWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 800
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
+
 export default function OxygenDissociationCurve() {
+  const windowWidth = useWindowWidth(); // 📱
+  const isMobile = windowWidth < 640;  // 📱
+
   const [heartRate, setHeartRate] = useState(60);
   const [hb, setHb] = useState(5);
   const [strokeVolume, setStrokeVolume] = useState(90);
@@ -59,28 +75,30 @@ export default function OxygenDissociationCurve() {
       style={{
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        padding: "24px",
+        padding: isMobile ? "12px 8px" : "24px", // 📱
         width: "100%",
         maxWidth: "100%",
         margin: 0,
         boxSizing: "border-box",
+        overflowX: isMobile ? "hidden" : undefined,
       }}
     >
       <div
         style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: 20,
+          padding: isMobile ? 0 : 20, // 📱
           boxSizing: "border-box",
         }}
       >
         <div
           style={{
             display: "flex",
-            gap: 24,
-            alignItems: "flex-start",
+            gap: isMobile ? 16 : 24,               // 📱
+            alignItems: isMobile ? "center" : "flex-start", // 📱
             justifyContent: "center",
-            flexWrap: "nowrap", // 🔥 keeps side-by-side
+            flexDirection: isMobile ? "column" : "row", // 📱 key fix
+            flexWrap: "nowrap",
             width: "100%",
           }}
         >
@@ -100,8 +118,10 @@ export default function OxygenDissociationCurve() {
               display: "flex",
               flexDirection: "column",
               gap: 16,
-              minWidth: 300,
+              minWidth: isMobile ? 0 : 300,       // 📱 was hardcoded 300
               flexShrink: 0,
+              width: isMobile ? "100%" : undefined, // 📱
+              boxSizing: "border-box",
             }}
           >
             <HeartRateControl

@@ -12,6 +12,18 @@ import {
 } from "./constants";
 import { hillSat, po2ToX, satToY, xToPo2 } from "./odcMath";
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 800
+  );
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return width;
+}
+
 export default function OdcCanvas({
   activePO2,
   p50,
@@ -22,6 +34,10 @@ export default function OdcCanvas({
 }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
+
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 640;
+  const scale = isMobile ? Math.min(1, (windowWidth - 16) / DISPLAY_W) : 1;
 
   const [isDragging, setIsDragging] = useState(false);
   const [probePos, setProbePos] = useState(null);
@@ -109,7 +125,6 @@ export default function OdcCanvas({
 
         for (let p = 0; p <= 100; p += 0.5) {
           const s = hillSat(p, p50Value);
-
           if (p === 0) {
             ctx.moveTo(po2ToX(p), satToY(s));
           } else {
@@ -272,133 +287,164 @@ export default function OdcCanvas({
     }
   };
 
-  return (
-    <div style={{ flexShrink: 0 }}>
-      <div ref={wrapRef} style={{ position: "relative", lineHeight: 0 }}>
-        <canvas
-          ref={canvasRef}
-          style={{
-            borderRadius: 8,
-            cursor: "crosshair",
-            touchAction: "none",
-            display: "block",
-          }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerLeave}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            top: 35,
-            right: 18,
-            width: 50,
-            height: 34,
-            zIndex: 12,
-            pointerEvents: "none",
-          }}
-        >
-          <svg
-            width="40"
-            height="24"
-            viewBox="0 0 82 54"
-            style={{
-              overflow: "visible",
-              animationName: "heartbeat",
-              animationTimingFunction: "ease-in-out",
-              animationIterationCount: "infinite",
-              animationDuration: `${60 / heartRate}s`,
-            }}
-          >
-            <path
-              d="M28 42 C28 42 8 30 8 15 C8 7 14 3 21 3 C25 3 29 6 31 10 C33 6 37 3 42 3 C49 3 55 7 55 15 C55 30 36 42 28 42Z"
-              fill="#cc0066"
-            />
-
-            <path
-              d="M10 25 H25 L30 14 L36 39 L42 21 L47 25 H72"
-              fill="none"
-              stroke="#5522aa"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <button
-          onClick={() => toggleShift("left")}
-          title="Left shift"
-          style={{
-            position: "absolute",
-            top: 22,
-            left: 56,
-            border: "none",
-            background: "transparent",
-            color: shiftDir === "left" ? "#2a6ab0" : "rgba(60,20,100,0.85)",
-            fontSize: 24,
-            fontWeight: 900,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          ←
-        </button>
-
-        <button
-          onClick={() => toggleShift("right")}
-          title="Right shift"
-          style={{
-            position: "absolute",
-            top: 250,
-            right: 24,
-            border: "none",
-            background: "transparent",
-            color: shiftDir === "right" ? "#e05a8a" : "rgba(60,20,100,0.85)",
-            fontSize: 24,
-            fontWeight: 900,
-            cursor: "pointer",
-            zIndex: 10,
-            padding: 0,
-          }}
-        >
-          →
-        </button>
-        {probePos && (
-          <div
-            style={{
-              position: "absolute",
-              left: probePos.x + 14,
-              top: Math.max(4, probePos.y - 34),
-              background: "rgba(255,255,255,0.94)",
-              border: "1.5px solid #7b5ea7",
-              borderRadius: 8,
-              padding: "4px 10px",
-              fontSize: 10.5,
-              fontWeight: 700,
-              color: "#3d2060",
-              pointerEvents: "none",
-              whiteSpace: "nowrap",
-              backdropFilter: "blur(4px)",
-              boxShadow: "0 2px 8px rgba(107,79,160,0.2)",
-              zIndex: 20,
-            }}
-          >
-            PO₂ {probePos.po2.toFixed(1)} mmHg | Sat {probePos.sat.toFixed(1)}%
-          </div>
-        )}
-      </div>
+  // ── Shared inner content ────────────────────────────────────────────────
+  const canvasAndControls = (tooltipScale = 1) => (
+    <div ref={wrapRef} style={{ position: "relative", lineHeight: 0 }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          borderRadius: 8,
+          cursor: "crosshair",
+          touchAction: "none",
+          display: "block",
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+      />
 
       <div
         style={{
-          textAlign: "center",
-          marginTop: 4,
-          fontSize: 13,
-          color: "#555",
+          position: "absolute",
+          top: 35,
+          right: 18,
+          width: 50,
+          height: 34,
+          zIndex: 12,
+          pointerEvents: "none",
         }}
       >
-        PO<sub>2</sub> (mmHg)
+        <svg
+          width="40"
+          height="24"
+          viewBox="0 0 82 54"
+          style={{
+            overflow: "visible",
+            animationName: "heartbeat",
+            animationTimingFunction: "ease-in-out",
+            animationIterationCount: "infinite",
+            animationDuration: `${60 / heartRate}s`,
+          }}
+        >
+          <path
+            d="M28 42 C28 42 8 30 8 15 C8 7 14 3 21 3 C25 3 29 6 31 10 C33 6 37 3 42 3 C49 3 55 7 55 15 C55 30 36 42 28 42Z"
+            fill="#cc0066"
+          />
+          <path
+            d="M10 25 H25 L30 14 L36 39 L42 21 L47 25 H72"
+            fill="none"
+            stroke="#5522aa"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
+      <button
+        onClick={() => toggleShift("left")}
+        title="Left shift"
+        style={{
+          position: "absolute",
+          top: 22,
+          left: 56,
+          border: "none",
+          background: "transparent",
+          color: shiftDir === "left" ? "#2a6ab0" : "rgba(60,20,100,0.85)",
+          fontSize: 24,
+          fontWeight: 900,
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        ←
+      </button>
+
+      <button
+        onClick={() => toggleShift("right")}
+        title="Right shift"
+        style={{
+          position: "absolute",
+          top: 250,
+          right: 24,
+          border: "none",
+          background: "transparent",
+          color: shiftDir === "right" ? "#e05a8a" : "rgba(60,20,100,0.85)",
+          fontSize: 24,
+          fontWeight: 900,
+          cursor: "pointer",
+          zIndex: 10,
+          padding: 0,
+        }}
+      >
+        →
+      </button>
+
+      {probePos && (
+        <div
+          style={{
+            position: "absolute",
+            left: (probePos.x + 14) / tooltipScale,
+            top: Math.max(4, probePos.y - 34) / tooltipScale,
+            background: "rgba(255,255,255,0.94)",
+            border: "1.5px solid #7b5ea7",
+            borderRadius: 8,
+            padding: "4px 10px",
+            fontSize: 10.5,
+            fontWeight: 700,
+            color: "#3d2060",
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+            backdropFilter: "blur(4px)",
+            boxShadow: "0 2px 8px rgba(107,79,160,0.2)",
+            zIndex: 20,
+          }}
+        >
+          PO₂ {probePos.po2.toFixed(1)} mmHg | Sat {probePos.sat.toFixed(1)}%
+        </div>
+      )}
+    </div>
+  );
+
+  const po2Label = (
+    <div style={{ textAlign: "center", marginTop: 4, fontSize: 13, color: "#555" }}>
+      PO<sub>2</sub> (mmHg)
+    </div>
+  );
+
+  // ── Desktop: original structure, untouched ──────────────────────────────
+  if (!isMobile) {
+    return (
+      <div style={{ flexShrink: 0 }}>
+        {canvasAndControls(1)}
+        {po2Label}
+      </div>
+    );
+  }
+
+  // ── Mobile: CSS scale wrapper ───────────────────────────────────────────
+  return (
+    <div
+      style={{
+        width: DISPLAY_W * scale,
+        height: (DISPLAY_H + 30) * scale,
+        position: "relative",
+       
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          transformOrigin: "top left",
+          transform: `scale(${scale})`,
+          width: DISPLAY_W,
+        }}
+      >
+        {canvasAndControls(scale)}
+        {po2Label}
       </div>
     </div>
   );
