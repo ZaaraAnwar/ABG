@@ -7,6 +7,7 @@ import CalculationTabs from "./CalculationTabs";
 import ResultsPanel from "./ResultsPanel";
 
 import { hillSat, getP50 } from "./odcMath";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 // 📱 tiny hook — reused across files
 function useWindowWidth() {
@@ -81,8 +82,29 @@ export default function OxygenDissociationCurve() {
         margin: 0,
         boxSizing: "border-box",
         overflowX: isMobile ? "hidden" : undefined,
+        position: "relative",
       }}
     >
+      <div
+        onClick={() => {
+          window.location.href = "https://abg.leadows.com/about-odc/";
+        }}
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          cursor: "pointer",
+          zIndex: 10,
+        }}
+      >
+        <InfoOutlinedIcon
+          style={{
+            fontSize: 26,
+            color: "#6b4fa0",
+          }}
+        />
+      </div>
+
       <div
         style={{
           maxWidth: 1200,
@@ -118,9 +140,9 @@ export default function OxygenDissociationCurve() {
               display: "flex",
               flexDirection: "column",
               gap: 16,
-              minWidth: isMobile ? 0 : 300,       // 📱 was hardcoded 300
+              minWidth: isMobile ? 0 : 300,       
               flexShrink: 0,
-              width: isMobile ? "100%" : undefined, // 📱
+              width: isMobile ? "100%" : undefined, 
               boxSizing: "border-box",
             }}
           >

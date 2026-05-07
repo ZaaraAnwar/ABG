@@ -19,35 +19,27 @@ const PH_MIN = 6.8;
 const PH_MAX = 7.85;
 const NORMAL_PH = 7.4;
 
-// Y-axis is always mmHg (0-160) regardless of unit
-// The slider display changes with unit, but the graph scale never changes
 const Y_TICKS = [0, 30, 60, 90, 120, 150];
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
-
 function round1(value) {
   return Math.round(value * 10) / 10;
 }
-
 function round2(value) {
   return Math.round(value * 100) / 100;
 }
-
 function getPhThumbColor(value) {
-  if (Math.abs(value - NORMAL_PH) < 0.005) return "#7cb342"; // green
-  if (value > NORMAL_PH) return "#2196f3"; // blue
-  return "#ff1744"; // red
+  if (Math.abs(value - NORMAL_PH) < 0.005) return "#7cb342";
+  if (value > NORMAL_PH) return "#2196f3";
+  return "#ff1744";
 }
-
 function getPaco2ThumbColor(value, normalPaco2) {
-  if (Math.abs(value - normalPaco2) < 0.05) return "#7cb342"; // green
-  if (value < normalPaco2) return "#2196f3"; // blue
-  return "#ff1744"; // red
+  if (Math.abs(value - normalPaco2) < 0.05) return "#7cb342";
+  if (value < normalPaco2) return "#2196f3";
+  return "#ff1744";
 }
-
-let sliderId = 0;
 
 function ScaleSlider({
   label,
@@ -62,17 +54,16 @@ function ScaleSlider({
   rightLabel,
 }) {
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
   const isDragging = useRef(false);
 
   const getValueFromX = (clientX) => {
     const rect = canvasRef.current.getBoundingClientRect();
-    const THUMB_R = 14;
+    const THUMB_R = 11;
     const trackLeft = THUMB_R;
     const trackRight = rect.width - THUMB_R;
     const ratio = Math.max(
       0,
-      Math.min(1, (clientX - rect.left - trackLeft) / (trackRight - trackLeft)),
+      Math.min(1, (clientX - rect.left - trackLeft) / (trackRight - trackLeft))
     );
     const raw = min + ratio * (max - min);
     const stepped = Math.round(raw / step) * step;
@@ -85,37 +76,34 @@ function ScaleSlider({
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
     const W = canvas.offsetWidth;
-    const H = 28;
+    const H = 22;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     ctx.scale(dpr, dpr);
 
-    const THUMB_R = 14;
+    const THUMB_R = 11;
     const trackLeft = THUMB_R;
     const trackRight = W - THUMB_R;
     const trackY = H / 2;
     const ratio = (value - min) / (max - min);
     const thumbX = trackLeft + ratio * (trackRight - trackLeft);
 
-    // Track background
     ctx.beginPath();
-    ctx.roundRect(trackLeft, trackY - 2.5, trackRight - trackLeft, 5, 999);
+    ctx.roundRect(trackLeft, trackY - 2, trackRight - trackLeft, 4, 999);
     ctx.fillStyle = "#d0d0d0";
     ctx.fill();
 
-    // Filled portion
     ctx.beginPath();
-    ctx.roundRect(trackLeft, trackY - 2.5, thumbX - trackLeft, 5, 999);
+    ctx.roundRect(trackLeft, trackY - 2, thumbX - trackLeft, 4, 999);
     ctx.fillStyle = thumbColor;
     ctx.fill();
 
-    // Thumb
     ctx.beginPath();
     ctx.arc(thumbX, trackY, THUMB_R, 0, Math.PI * 2);
     ctx.fillStyle = "#fff";
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(thumbX, trackY, THUMB_R - 3, 0, Math.PI * 2);
+    ctx.arc(thumbX, trackY, THUMB_R - 2.5, 0, Math.PI * 2);
     ctx.fillStyle = thumbColor;
     ctx.fill();
   }, [value, min, max, thumbColor]);
@@ -128,28 +116,29 @@ function ScaleSlider({
   };
 
   return (
-    <div style={{ marginBottom: 28 }}>
+    <div style={{ marginBottom: 10 }}>
+      {/* Label + Value row */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 12,
-          gap: 16,
+          marginBottom: 6,
+          gap: 12,
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 500, color: "#333" }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: "#333" }}>
           {label}
         </div>
         <div
           style={{
-            minWidth: 88,
+            minWidth: 70,
             textAlign: "center",
-            fontSize: 16,
+            fontSize: 13,
             color: "#333",
-            padding: "10px 14px",
+            padding: "5px 10px",
             border: "1.5px solid #d9d9d9",
-            borderRadius: 10,
+            borderRadius: 8,
             background: "#fff",
           }}
         >
@@ -157,51 +146,35 @@ function ScaleSlider({
         </div>
       </div>
 
-      <div
-        ref={containerRef}
-        style={{
-          position: "relative",
-          userSelect: "none",
-          touchAction: "none",
-        }}
-      >
+      {/* Track */}
+      <div style={{ position: "relative", userSelect: "none", touchAction: "none" }}>
         <canvas
           ref={canvasRef}
-          style={{
-            width: "100%",
-            height: 28,
-            display: "block",
-            cursor: "pointer",
-          }}
+          style={{ width: "100%", height: 22, display: "block", cursor: "pointer" }}
           onMouseDown={(e) => {
             isDragging.current = true;
             onChange(getValueFromX(e.clientX));
           }}
           onMouseMove={handlePointer}
-          onMouseUp={() => {
-            isDragging.current = false;
-          }}
-          onMouseLeave={() => {
-            isDragging.current = false;
-          }}
+          onMouseUp={() => { isDragging.current = false; }}
+          onMouseLeave={() => { isDragging.current = false; }}
           onTouchStart={(e) => {
             isDragging.current = true;
             onChange(getValueFromX(e.touches[0].clientX));
           }}
           onTouchMove={handlePointer}
-          onTouchEnd={() => {
-            isDragging.current = false;
-          }}
+          onTouchEnd={() => { isDragging.current = false; }}
         />
       </div>
 
+      {/* Min / Max labels */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          marginTop: 6,
-          fontSize: 14,
-          color: "#777",
+          marginTop: 3,
+          fontSize: 11,
+          color: "#999",
         }}
       >
         <span>{leftLabel}</span>
@@ -210,6 +183,7 @@ function ScaleSlider({
     </div>
   );
 }
+
 export default function ABGGraph() {
   const { unit } = usePressureUnit();
   const { min: paco2Min, max: paco2Max } = getPaco2Range(unit);
@@ -219,7 +193,6 @@ export default function ABGGraph() {
   const [ph, setPh] = useState(NORMAL_PH);
   const [previousUnit, setPreviousUnit] = useState(unit);
 
-  // Reset sliders when unit changes
   useEffect(() => {
     if (previousUnit === unit) return;
     setPaco2(getNormalPaco2(unit));
@@ -227,17 +200,10 @@ export default function ABGGraph() {
     setPreviousUnit(unit);
   }, [unit, previousUnit]);
 
-  // interpret() needs mmHg for correct diagnosis — convert only here
   const paco2ForDiagnosis = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
-
-  // Red dot always plots the raw value the user set (no conversion)
-  // 9.0 kPa → dot at Y=9.0 on the mmHg-scaled axis (0–160)
   const paco2ForPlot = paco2;
 
-  const title = useMemo(
-    () => interpret(ph, paco2ForDiagnosis),
-    [ph, paco2ForDiagnosis],
-  );
+  const title = useMemo(() => interpret(ph, paco2ForDiagnosis), [ph, paco2ForDiagnosis]);
   const regions = useMemo(() => buildRegions(), []);
 
   const paco2ThumbColor = getPaco2ThumbColor(paco2, normalPaco2);
@@ -248,87 +214,67 @@ export default function ABGGraph() {
       style={{
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        padding: "24px",
-        width: "100%",
-        maxWidth: "100%",
-        margin: 0,
+        /* Full height of viewport, no overflow */
+        height: "100vh",
+        maxHeight: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        padding: "10px 16px 8px",
         boxSizing: "border-box",
+        position: "relative",
       }}
     >
-      <div
-        style={{
-          textAlign: "center",
-          fontSize: 22,
-          fontWeight: 700,
-          color: "#6b4fa0",
-          marginBottom: 24,
-        }}
-      >
-        ABG Graph
+      {/* ── Header ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8, flexShrink: 0 }}>
+        
+        <div
+          onClick={() => { window.location.href = "https://abg.leadows.com/abg-graph-info/"; }}
+          style={{ position: "absolute", right: 16, top: 10, cursor: "pointer" }}
+        >
+          <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
+        </div>
       </div>
-      {/* Info Icon */}
-      <div
-        onClick={() => {
-          window.location.href = "https://abg.leadows.com/abg-graph-info/";
-        }}
-        style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          cursor: "pointer",
-          zIndex: 10,
-        }}
-      >
-        <InfoOutlinedIcon
-          style={{
-            fontSize: 26,
-            color: "#6b4fa0",
-          }}
+
+      {/* ── Sliders ── */}
+      <div style={{ flexShrink: 0 }}>
+        <ScaleSlider
+          label={<>PaCO<sub>2</sub> ({unit})</>}
+          value={paco2}
+          min={paco2Min}
+          max={paco2Max}
+          step={unit === "kPa" ? 0.1 : 1}
+          decimals={unit === "kPa" ? 1 : 0}
+          thumbColor={paco2ThumbColor}
+          onChange={(val) => setPaco2(round1(clamp(val, paco2Min, paco2Max)))}
+          leftLabel={paco2Min.toFixed(1)}
+          rightLabel={paco2Max.toFixed(1)}
+        />
+        <ScaleSlider
+          label="pH"
+          value={ph}
+          min={PH_MIN}
+          max={PH_MAX}
+          step={0.01}
+          decimals={2}
+          thumbColor={phThumbColor}
+          onChange={(val) => setPh(round2(clamp(val, PH_MIN, PH_MAX)))}
+          leftLabel={PH_MIN.toFixed(1)}
+          rightLabel={PH_MAX.toFixed(2)}
         />
       </div>
 
-      {/* PaCO2 slider — range and display change with unit, graph always mmHg */}
-      <ScaleSlider
-        label={
-          <>
-            PaCO<sub>2</sub> ({unit})
-          </>
-        }
-        value={paco2}
-        min={paco2Min}
-        max={paco2Max}
-        step={unit === "kPa" ? 0.1 : 1}
-        decimals={unit === "kPa" ? 1 : 0}
-        thumbColor={paco2ThumbColor}
-        onChange={(val) => setPaco2(round1(clamp(val, paco2Min, paco2Max)))}
-        leftLabel={paco2Min.toFixed(1)}
-        rightLabel={paco2Max.toFixed(1)}
-      />
-
-      {/* pH slider — unit-independent */}
-      <ScaleSlider
-        label="pH"
-        value={ph}
-        min={PH_MIN}
-        max={PH_MAX}
-        step={0.01}
-        decimals={2}
-        thumbColor={phThumbColor}
-        onChange={(val) => setPh(round2(clamp(val, PH_MIN, PH_MAX)))}
-        leftLabel={PH_MIN.toFixed(1)}
-        rightLabel={PH_MAX.toFixed(2)}
-      />
-
-      {/* Diagnosis label */}
+      {/* ── Diagnosis label ── */}
       <div
         style={{
           textAlign: "center",
-          fontSize: 18,
-          fontWeight: 500,
+          fontSize: 14,
+          fontWeight: 600,
           color: "#333",
-          margin: "20px 0",
-          lineHeight: 1.4,
-          minHeight: 54,
+          margin: "4px 0 6px",
+          lineHeight: 1.35,
+          minHeight: 36,
+          flexShrink: 0,
         }}
       >
         {title.split("\n").map((line, i) => (
@@ -336,38 +282,25 @@ export default function ABGGraph() {
         ))}
       </div>
 
-      {/* Chart */}
+      {/* ── Chart — grows to fill remaining space ── */}
       <div
         style={{
-          background: "#fff",
+          flex: 1,
+          minHeight: 0,
           position: "relative",
-          padding: "10px 10px 40px 40px",
+          paddingLeft: 16,
+          paddingBottom: 28,
+          boxSizing: "border-box",
         }}
       >
-        {/* Y-axis label — always mmHg */}
-        <div
-          style={{
-            position: "absolute",
-            left: -40,
-            top: "50%",
-            transform: "translateY(-50%) rotate(-90deg)",
-            fontSize: 14,
-            fontWeight: 600,
-            color: "#666",
-          }}
-        >
-          PaCO₂ (mmHg)
-        </div>
-
         {/* X-axis label */}
         <div
           style={{
             position: "absolute",
-            bottom: 12,
+            bottom: 4,
             left: "50%",
             transform: "translateX(-50%)",
-            width: "max-content",
-            fontSize: 14,
+            fontSize: 11,
             fontWeight: 600,
             color: "#666",
             pointerEvents: "none",
@@ -376,76 +309,64 @@ export default function ABGGraph() {
           pH
         </div>
 
+        {/* SVG fills 100% of the flex child */}
         <svg
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          preserveAspectRatio="xMidYMid meet"
           style={{
             display: "block",
             width: "100%",
-            height: "auto",
+            height: "100%",
             overflow: "visible",
+            border: "1.5px solid #e0e0e0",
+            borderRadius: 8,
           }}
         >
-          {/* Y-axis grid — always mmHg scale */}
+          {/* Y-axis label — inside SVG, rotated tight beside tick numbers */}
+          <text
+            x="-38"
+            y={SVG_H / 2}
+            fontSize="13"
+            fill="#666"
+            fontWeight="600"
+            textAnchor="middle"
+            transform={`rotate(-90, -38, ${SVG_H / 2})`}
+            fontFamily="'Segoe UI', system-ui, sans-serif"
+          >
+            PaCO₂ (mmHg)
+          </text>
+          {/* Y-axis grid */}
           {Y_TICKS.map((val) => (
             <g key={`gy-${val}`}>
-              <line
-                x1="0"
-                x2={SVG_W}
-                y1={mapY(val)}
-                y2={mapY(val)}
-                stroke="#eee"
-                strokeWidth="1"
-              />
-              <text
-                x="-12"
-                y={mapY(val) + 5}
-                fontSize="16"
-                fill="#888"
-                textAnchor="end"
-              >
+              <line x1="0" x2={SVG_W} y1={mapY(val)} y2={mapY(val)} stroke="#eee" strokeWidth="1" />
+              <text x="-10" y={mapY(val) + 5} fontSize="14" fill="#888" textAnchor="end">
                 {val}
               </text>
             </g>
           ))}
 
-          {/* X-axis grid — pH is always the same */}
+          {/* X-axis grid */}
           {[6.8, 7.0, 7.2, 7.4, 7.6, 7.8].map((val) => (
             <g key={`gx-${val}`}>
-              <line
-                x1={mapX(val)}
-                x2={mapX(val)}
-                y1="0"
-                y2={SVG_H}
-                stroke="#eee"
-                strokeWidth="1"
-              />
-              <text
-                x={mapX(val)}
-                y={SVG_H + 24}
-                fontSize="16"
-                fill="#888"
-                textAnchor="middle"
-              >
+              <line x1={mapX(val)} x2={mapX(val)} y1="0" y2={SVG_H} stroke="#eee" strokeWidth="1" />
+              <text x={mapX(val)} y={SVG_H + 20} fontSize="14" fill="#888" textAnchor="middle">
                 {val.toFixed(1)}
               </text>
             </g>
           ))}
 
-          {/* Regions — already in mmHg, plot directly */}
+          {/* Regions */}
           {regions.map((r, i) => (
             <g key={`region-${i}`} fill={r.color} opacity="0.8">
               {r.points.map((pt, j) =>
-                pt.ph >= PH_MIN &&
-                pt.ph <= PH_MAX &&
-                pt.pco2 >= 0 &&
-                pt.pco2 <= 160 ? (
+                pt.ph >= PH_MIN && pt.ph <= PH_MAX && pt.pco2 >= 0 && pt.pco2 <= 160 ? (
                   <circle key={j} cx={mapX(pt.ph)} cy={mapY(pt.pco2)} r="6" />
-                ) : null,
+                ) : null
               )}
             </g>
           ))}
 
-          {/* Red dot — raw value in user's chosen unit, no conversion */}
+          {/* Red dot */}
           <circle
             cx={mapX(ph)}
             cy={mapY(paco2ForPlot)}
@@ -459,39 +380,31 @@ export default function ABGGraph() {
         </svg>
       </div>
 
-      {/* Legend */}
+      {/* ── Legend ── */}
       <div
         style={{
-          marginTop: 32,
+          flexShrink: 0,
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "8px 12px",
-          fontSize: 11,
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "4px 8px",
+          fontSize: 10,
           color: "#555",
+          paddingTop: 6,
+          borderTop: "1px solid #f0f0f0",
         }}
       >
         {[
           { color: "#81afd4", label: "Normal" },
-          { color: "#d6a6a1", label: "Metabolic Acidosis" },
-          { color: "#bad098", label: "Metabolic Alkalosis" },
-          { color: "#aba0c5", label: "Acute Resp. Acidosis" },
-          { color: "#88bacd", label: "Chronic Resp. Acidosis" },
-          { color: "#f2ccaa", label: "Acute Resp. Alkalosis" },
-          { color: "#9aaeb9", label: "Chronic Resp. Alkalosis" },
+          { color: "#d6a6a1", label: "Met. Acidosis" },
+          { color: "#bad098", label: "Met. Alkalosis" },
+          { color: "#aba0c5", label: "Acute Resp. Acid." },
+          { color: "#88bacd", label: "Chr. Resp. Acid." },
+          { color: "#f2ccaa", label: "Acute Resp. Alk." },
+          { color: "#9aaeb9", label: "Chr. Resp. Alk." },
           { color: "#ff1744", label: "Selected value" },
         ].map(({ color, label }) => (
-          <div
-            key={label}
-            style={{ display: "flex", alignItems: "center", gap: 6 }}
-          >
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 2,
-                background: color,
-              }}
-            />
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
             <span>{label}</span>
           </div>
         ))}
