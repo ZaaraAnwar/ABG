@@ -1,17 +1,18 @@
 import React, { useState, useMemo } from "react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const NORMAL_ALBUMIN = 4.0;
+const NORMAL_ALBUMIN = 3.5;
 
 export default function AnionGap() {
   const [na, setNa] = useState(140);
-  const [cl, setCl] = useState(105);
-  const [hco3, setHco3] = useState(24);
-  const [albumin, setAlbumin] = useState(4.0);
+  const [cl, setCl] = useState(110);
+  const [hco3, setHco3] = useState(7);
+  const [albumin, setAlbumin] = useState(3.5);
 
   // ── ALL ORIGINAL LOGIC UNTOUCHED ──────────────────────────────────────────
   const ag = na - (cl + hco3);
-  const correctedAG = ag + 2.5 * (NORMAL_ALBUMIN - albumin);
+  const correctedAG =
+    albumin >= NORMAL_ALBUMIN ? "NA" : ag + 2.5 * (NORMAL_ALBUMIN - albumin);
 
   const status = useMemo(() => {
     if (ag < 8) return { label: "Low Anion Gap", color: "#245576" };
@@ -129,10 +130,16 @@ export default function AnionGap() {
 
       <div className="ag-root">
         <div className="ag-content">
-
           {/* Left: Albumin Controls — structure identical to original */}
           <div className="ag-albumin-panel">
-            <div style={{ fontWeight: 700, fontSize: 16, color: "#333", marginBottom: 12 }}>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                color: "#333",
+                marginBottom: 12,
+              }}
+            >
               Serum Albumin
             </div>
             <div
@@ -149,21 +156,54 @@ export default function AnionGap() {
               }}
             >
               <button
-                onClick={() => setAlbumin((v) => Math.max(0.1, Math.round((v - 0.1) * 10) / 10))}
-                style={{ width: 32, height: 32, border: "none", background: "none", fontSize: 20, cursor: "pointer", color: "#666" }}
+                onClick={() =>
+                  setAlbumin((v) =>
+                    Math.max(0, Math.round((v - 0.5) * 10) / 10),
+                  )
+                }
+                style={{
+                  width: 32,
+                  height: 32,
+                  border: "none",
+                  background: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  color: "#666",
+                }}
               >
                 −
               </button>
-              <div style={{ flex: 1, fontWeight: 700, fontSize: 16 }}>{albumin.toFixed(1)}</div>
+              <div style={{ flex: 1, fontWeight: 700, fontSize: 16 }}>
+                {albumin.toFixed(1)}
+              </div>
               <button
-                onClick={() => setAlbumin((v) => Math.min(6.0, Math.round((v + 0.1) * 10) / 10))}
-                style={{ width: 32, height: 32, border: "none", background: "none", fontSize: 20, cursor: "pointer", color: "#666" }}
+                onClick={() =>
+                  setAlbumin((v) =>
+                    Math.min(8.0, Math.round((v + 0.5) * 10) / 10),
+                  )
+                }
+                style={{
+                  width: 32,
+                  height: 32,
+                  border: "none",
+                  background: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  color: "#666",
+                }}
               >
                 +
               </button>
             </div>
 
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#444",
+                marginBottom: 8,
+              }}
+            >
               Corrected AG for Serum Albumin
             </div>
             <div
@@ -177,7 +217,7 @@ export default function AnionGap() {
                 fontSize: 16,
               }}
             >
-              {correctedAG.toFixed(1)}
+              {typeof correctedAG === "number" ? correctedAG.toFixed(1) : correctedAG}
             </div>
           </div>
 
@@ -185,7 +225,13 @@ export default function AnionGap() {
           <div className="ag-graph">
             {/* Na bar */}
             <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
                 <div style={{ position: "relative" }}>
                   <div
                     style={{
@@ -225,28 +271,85 @@ export default function AnionGap() {
             </div>
 
             {/* Comparative bar */}
-            <div style={{ display: "flex", flexDirection: "column-reverse", position: "relative" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column-reverse",
+                position: "relative",
+              }}
+            >
               {/* Cl- */}
-              <div style={{ width: 60, height: getH(cl), background: "#66bb6a", position: "relative" }}>
-                <span style={{ position: "absolute", left: 70, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>
+              <div
+                style={{
+                  width: 60,
+                  height: getH(cl),
+                  background: "#66bb6a",
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 70,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   Cl<sup>−</sup> ({cl})
                 </span>
               </div>
               {/* AG */}
-              <div style={{ width: 60, height: getH(Math.max(2, ag)), background: "#f44336", position: "relative" }}>
-                <span style={{ position: "absolute", left: 70, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>
+              <div
+                style={{
+                  width: 60,
+                  height: getH(Math.max(2, ag)),
+                  background: "#f44336",
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 70,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   AG ({ag})
                 </span>
               </div>
               {/* HCO3 */}
-              <div style={{ width: 60, height: getH(hco3), background: "#29b6f6", position: "relative" }}>
-                <span style={{ position: "absolute", left: 70, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>
-                  HCO<sub>3</sub><sup>−</sup> ({hco3})
+              <div
+                style={{
+                  width: 60,
+                  height: getH(hco3),
+                  background: "#29b6f6",
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 70,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  HCO<sub>3</sub>
+                  <sup>−</sup> ({hco3})
                 </span>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Footer Result — identical logic */}
@@ -258,27 +361,53 @@ export default function AnionGap() {
             if (ag > 12) {
               window.location.href = "https://abg.leadows.com/high-anion-gap/";
             } else if (ag >= 8 && ag <= 12) {
-              window.location.href = "https://abg.leadows.com/normal-anion-gap/";
+              window.location.href =
+                "https://abg.leadows.com/normal-anion-gap/";
             } else {
               window.location.href = "https://abg.leadows.com/low-anion-gap/";
             }
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(1.1)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.filter = "none"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = "brightness(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = "none";
+          }}
         >
           {status.label}
           {ag > 12 && (
-            <div style={{ fontSize: 13, fontWeight: 400, marginTop: 4, opacity: 0.9 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 400,
+                marginTop: 4,
+                opacity: 0.9,
+              }}
+            >
               Click for Delta-Delta &amp; Osmolar Gap Analysis
             </div>
           )}
           {ag >= 8 && ag <= 12 && (
-            <div style={{ fontSize: 13, fontWeight: 400, marginTop: 4, opacity: 0.9 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 400,
+                marginTop: 4,
+                opacity: 0.9,
+              }}
+            >
               Click for Normal Anion Gap Details
             </div>
           )}
           {ag < 8 && (
-            <div style={{ fontSize: 13, fontWeight: 400, marginTop: 4, opacity: 0.9 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 400,
+                marginTop: 4,
+                opacity: 0.9,
+              }}
+            >
               Click for Low Anion Gap Details
             </div>
           )}
@@ -287,16 +416,49 @@ export default function AnionGap() {
         {/* Sliders — identical */}
         <div className="ag-sliders">
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>Sodium ({na})</label>
-            <input type="range" min="100" max="180" value={na} onChange={e => setNa(parseInt(e.target.value))} style={{ width: "100%" }} />
+            <label
+              style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
+            >
+              Sodium ({na})
+            </label>
+            <input
+              type="range"
+              min="100"
+              max="180"
+              value={na}
+              onChange={(e) => setNa(parseInt(e.target.value))}
+              style={{ width: "100%" }}
+            />
           </div>
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>Chloride ({cl})</label>
-            <input type="range" min="60" max="140" value={cl} onChange={e => setCl(parseInt(e.target.value))} style={{ width: "100%" }} />
+            <label
+              style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
+            >
+              Chloride ({cl})
+            </label>
+            <input
+              type="range"
+              min="60"
+              max="140"
+              value={cl}
+              onChange={(e) => setCl(parseInt(e.target.value))}
+              style={{ width: "100%" }}
+            />
           </div>
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>HCO3 ({hco3})</label>
-            <input type="range" min="5" max="50" value={hco3} onChange={e => setHco3(parseInt(e.target.value))} style={{ width: "100%" }} />
+            <label
+              style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
+            >
+              HCO3 ({hco3})
+            </label>
+            <input
+              type="range"
+              min="5"
+              max="50"
+              value={hco3}
+              onChange={(e) => setHco3(parseInt(e.target.value))}
+              style={{ width: "100%" }}
+            />
           </div>
         </div>
       </div>

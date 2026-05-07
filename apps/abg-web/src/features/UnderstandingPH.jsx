@@ -13,23 +13,18 @@ import {
   mapY,
 } from "../utils/abgMath";
 
-// Medical reference ranges
-// Normal pH: 7.35–7.45 (midpoint 7.40)
-// Normal H+: 35–45 nmol/L (at pH 7.35–7.45)
-// Survivable pH: ~6.8–7.85 → H+: ~14–158 nmol/L
 const H_MIN = 14;
 const H_MAX = 158;
 const NORMAL_PH = 7.4;
 
 export default function UnderstandingPH() {
-  const { unit } = usePressureUnit(); // consumed for global consistency, doesn't affect H+/pH
+  const { unit } = usePressureUnit();
   const [ph, setPh] = useState(NORMAL_PH);
-  const h = phToH(ph); // always derived — never stored separately
+  const h = phToH(ph);
 
   const handlePhChange = (newPh) => setPh(newPh);
-  const handleHChange = (newH) => setPh(hToPh(newH));
+  const handleHChange  = (newH)  => setPh(hToPh(newH));
 
-  // Curve: H+ = 10^(9 - pH) expressed in nmol/L
   const curvePoints = [];
   for (let pt = PH_MIN; pt <= PH_MAX; pt += 0.02) {
     const hVal = phToH(pt);
@@ -38,99 +33,83 @@ export default function UnderstandingPH() {
     }
   }
 
-  // Color the dot: green if normal, red if abnormal
   const isNormal = ph >= 7.35 && ph <= 7.45;
   const dotColor = isNormal ? "#4caf50" : "#ff1744";
 
   return (
     <div
       style={{
-        position: "relative",
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        padding: "24px",
-        width: "100%",
-        maxWidth: "100%",
-        margin: 0,
+        // Lock to viewport — no scroll
+        height: "100dvh",
+        maxHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        padding: "10px 16px 8px",
         boxSizing: "border-box",
+        overflow: "hidden",
+        position: "relative",
       }}
     >
+      {/* ── Header ── */}
       <div
-        onClick={() => {
-          window.location.href =
-            "https://abg.leadows.com/understanding-ph-info/";
-        }}
         style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          cursor: "pointer",
-          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 8,
+          flexShrink: 0,
+          position: "relative",
         }}
       >
-        <InfoOutlinedIcon
-          style={{
-            fontSize: 26,
-            color: "#6b4fa0",
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#6b4fa0" }}>
+          Understanding pH
+        </div>
+        <div
+          onClick={() => {
+            window.location.href = "https://abg.leadows.com/understanding-ph-info/";
           }}
+          style={{ position: "absolute", right: 0, top: 0, cursor: "pointer" }}
+        >
+          <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
+        </div>
+      </div>
+
+      {/* ── Sliders ── */}
+      <div style={{ flexShrink: 0 }}>
+        <Slider
+          label={<>H<sup>+</sup></>}
+          value={parseFloat(h.toFixed(1))}
+          min={H_MIN}
+          max={H_MAX}
+          step={0.5}
+          decimals={1}
+          thumbColor="#4caf50"
+          rightLabel={<>{H_MAX.toFixed(1)}<br />nMol</>}
+          onChange={handleHChange}
+        />
+        <Slider
+          label="pH"
+          value={parseFloat(ph.toFixed(2))}
+          min={6.8}
+          max={7.85}
+          step={0.01}
+          decimals={2}
+          thumbColor="#4caf50"
+          onChange={handlePhChange}
         />
       </div>
 
-      {/* <div
-        style={{
-          textAlign: "center",
-          fontSize: 20,
-          fontWeight: 700,
-          color: "#6b4fa0",
-          marginBottom: 30,
-        }}
-      >
-        Understanding pH
-      </div> */}
-
-      {/* H+ Slider */}
-      <Slider
-        label={
-          <>
-            H<sup>+</sup>
-          </>
-        }
-        value={parseFloat(h.toFixed(1))}
-        min={H_MIN}
-        max={H_MAX}
-        step={0.5}
-        decimals={1}
-        thumbColor="#4caf50"
-        rightLabel={
-          <>
-            {H_MAX.toFixed(1)}
-            <br />
-            nMol
-          </>
-        }
-        onChange={handleHChange}
-      />
-
-      {/* pH Slider */}
-      <Slider
-        label="pH"
-        value={parseFloat(ph.toFixed(2))}
-        min={6.8}
-        max={7.85}
-        step={0.01}
-        decimals={2}
-        thumbColor="#4caf50"
-        onChange={handlePhChange}
-      />
-
-      {/* Formula */}
+      {/* ── Formula ── */}
       <div
         style={{
           textAlign: "center",
-          margin: "28px 0 24px",
-          fontSize: 18,
+          margin: "6px 0 4px",
+          fontSize: 16,
           color: "#333",
           fontWeight: 500,
+          flexShrink: 0,
         }}
       >
         pH = log{" "}
@@ -142,13 +121,7 @@ export default function UnderstandingPH() {
             lineHeight: 1.2,
           }}
         >
-          <span
-            style={{
-              display: "block",
-              borderBottom: "1.5px solid #333",
-              paddingBottom: 2,
-            }}
-          >
+          <span style={{ display: "block", borderBottom: "1.5px solid #333", paddingBottom: 2 }}>
             1
           </span>
           <span style={{ display: "block", paddingTop: 2 }}>
@@ -157,55 +130,46 @@ export default function UnderstandingPH() {
         </span>
       </div>
 
-      {/* Normal range indicator */}
+      {/* ── Status label ── */}
       <div
         style={{
           textAlign: "center",
-          marginBottom: 20,
+          marginBottom: 6,
           fontSize: 13,
           color: isNormal ? "#4caf50" : "#ff1744",
           fontWeight: 500,
+          flexShrink: 0,
         }}
       >
         {isNormal
           ? `Normal — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
           : ph < 7.35
-            ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
-            : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`}
+          ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
+          : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`}
       </div>
 
-      {/* Chart */}
+      {/* ── Chart — fills remaining space ── */}
       <div
         style={{
-          background: "#fff",
+          flex: 1,
+          minHeight: 0,           // critical: lets flex child shrink
           position: "relative",
-          padding: "10px 10px 48px 44px",
+          paddingLeft: 16,
+          paddingBottom: 28,
+          boxSizing: "border-box",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            left: -40,
-            top: "45%",
-            transform: "translateY(-50%) rotate(-90deg)",
-            fontSize: 14,
-            fontWeight: 600,
-            color: "#666",
-            whiteSpace: "nowrap",
-          }}
-        >
-          H⁺ (nmol/L)
-        </div>
-
+        {/* X-axis label */}
         <div
           style={{
             position: "absolute",
             bottom: 4,
             left: "50%",
             transform: "translateX(-50%)",
-            fontSize: 14,
+            fontSize: 11,
             fontWeight: 600,
             color: "#666",
+            pointerEvents: "none",
           }}
         >
           pH
@@ -213,31 +177,35 @@ export default function UnderstandingPH() {
 
         <svg
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          preserveAspectRatio="xMidYMid meet"
           style={{
             display: "block",
             width: "100%",
-            height: "auto",
+            height: "100%",
             overflow: "visible",
+            border: "1.5px solid #e0e0e0",
+            borderRadius: 8,
           }}
         >
+          {/* Y-axis label — inside SVG, snug beside tick numbers */}
+          <text
+            x="-38"
+            y={SVG_H / 2}
+            fontSize="13"
+            fill="#666"
+            fontWeight="600"
+            textAnchor="middle"
+            transform={`rotate(-90, -38, ${SVG_H / 2})`}
+            fontFamily="'Segoe UI', system-ui, sans-serif"
+          >
+            H⁺ (nmol/L)
+          </text>
+
           {/* Y grid */}
           {[0, 20, 40, 60, 80, 100, 120, 140, 160].map((val) => (
             <g key={`gy-${val}`}>
-              <line
-                x1="0"
-                x2={SVG_W}
-                y1={mapY(val)}
-                y2={mapY(val)}
-                stroke="#ddd"
-                strokeWidth="1.5"
-              />
-              <text
-                x="-10"
-                y={mapY(val) + 5}
-                fontSize="14"
-                fill="#888"
-                textAnchor="end"
-              >
+              <line x1="0" x2={SVG_W} y1={mapY(val)} y2={mapY(val)} stroke="#ddd" strokeWidth="1.5" />
+              <text x="-10" y={mapY(val) + 5} fontSize="14" fill="#888" textAnchor="end">
                 {val}
               </text>
             </g>
@@ -246,37 +214,20 @@ export default function UnderstandingPH() {
           {/* X grid */}
           {[6.8, 7.0, 7.2, 7.4, 7.6, 7.8].map((val) => (
             <g key={`gx-${val}`}>
-              <line
-                x1={mapX(val)}
-                x2={mapX(val)}
-                y1="0"
-                y2={SVG_H}
-                stroke="#ccc"
-                strokeWidth="1.5"
-              />
-              <text
-                x={mapX(val)}
-                y={SVG_H + 22}
-                fontSize="14"
-                fill="#888"
-                textAnchor="middle"
-              >
+              <line x1={mapX(val)} x2={mapX(val)} y1="0" y2={SVG_H} stroke="#ccc" strokeWidth="1.5" />
+              <text x={mapX(val)} y={SVG_H + 22} fontSize="14" fill="#888" textAnchor="middle">
                 {val.toFixed(1)}
               </text>
             </g>
           ))}
 
-          {/* Normal range shading: pH 7.35–7.45 */}
+          {/* Normal range shading */}
           <rect
-            x={mapX(7.35)}
-            y={0}
-            width={mapX(7.45) - mapX(7.35)}
-            height={SVG_H}
-            fill="#4caf50"
-            opacity="0.06"
+            x={mapX(7.35)} y={0}
+            width={mapX(7.45) - mapX(7.35)} height={SVG_H}
+            fill="#4caf50" opacity="0.06"
           />
 
-          {/* Curve */}
           {/* Curve */}
           <polyline
             points={curvePoints.join(" ")}
@@ -288,45 +239,27 @@ export default function UnderstandingPH() {
             opacity="0.85"
           />
 
-          {/* Normal range vertical markers */}
-          <line
-            x1={mapX(7.35)}
-            x2={mapX(7.35)}
-            y1="0"
-            y2={SVG_H}
-            stroke="#4caf50"
-            strokeWidth="1"
-            strokeDasharray="4,3"
-            opacity="0.4"
-          />
-          <line
-            x1={mapX(7.45)}
-            x2={mapX(7.45)}
-            y1="0"
-            y2={SVG_H}
-            stroke="#4caf50"
-            strokeWidth="1"
-            strokeDasharray="4,3"
-            opacity="0.4"
-          />
+          {/* Normal range dashed markers */}
+          <line x1={mapX(7.35)} x2={mapX(7.35)} y1="0" y2={SVG_H} stroke="#4caf50" strokeWidth="1" strokeDasharray="4,3" opacity="0.4" />
+          <line x1={mapX(7.45)} x2={mapX(7.45)} y1="0" y2={SVG_H} stroke="#4caf50" strokeWidth="1" strokeDasharray="4,3" opacity="0.4" />
 
-          {/* Current point */}
+          {/* Active dot */}
           <circle
-            cx={mapX(ph)}
-            cy={mapY(h)}
-            r="10"
+            cx={mapX(ph)} cy={mapY(h)} r="10"
             fill={dotColor}
             style={{ transition: "cx 0.1s linear, cy 0.1s linear" }}
           />
         </svg>
       </div>
 
+      {/* ── Footer note ── */}
       <div
         style={{
           textAlign: "center",
           fontSize: 11,
           color: "#bbb",
-          marginTop: 8,
+          marginTop: 4,
+          flexShrink: 0,
         }}
       >
         Normal range: pH 7.35–7.45 · H⁺ 35–45 nmol/L

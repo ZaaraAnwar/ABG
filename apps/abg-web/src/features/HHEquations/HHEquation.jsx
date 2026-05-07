@@ -94,7 +94,7 @@ export default function HHEquation() {
         boxSizing: "border-box",
       }}
     >
-      <div
+      {/* <div
         style={{
           textAlign: "center",
           fontSize: 20,
@@ -104,7 +104,7 @@ export default function HHEquation() {
         }}
       >
         Henderson-Hasselbalch Equation
-      </div>
+      </div> */}
 
       {/* Select value to calculate */}
       <div style={{ fontSize: 13, color: "#888", marginBottom: 10 }}>

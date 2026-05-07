@@ -1,20 +1,17 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { usePressureUnit } from "../../context/PressureUnitContext";
+import {
+  getCO2Factor,
+  getPaco2Range,
+  getNormalPaco2,
+} from "../../utils/pressureUnit";
 
 const FIXED_PH = 7.4;
 const PKA = 6.1;
-const CO2_SOLUBILITY_KPA = 0.23;
 
 const HCO3_MIN = 0;
 const HCO3_MAX = 100;
-const PACO2_MIN = 0;
-const PACO2_MAX = 21;
-
 const NORMAL_HCO3 = 24.0;
-const NORMAL_PACO2 = 5.0;
-
-// pH = pKa + log(HCO3 / (solubility * PaCO2))
-// => PaCO2 = HCO3 / (solubility * 10^(pH - pKa))
-const RATIO = CO2_SOLUBILITY_KPA * Math.pow(10, FIXED_PH - PKA);
 
 function round1(value) {
   return Math.round(value * 10) / 10;
@@ -34,9 +31,9 @@ function getHco3Color(value) {
   return "#1a1aff";
 }
 
-function getPaco2Color(value) {
-  if (Math.abs(value - NORMAL_PACO2) < 0.5) return "#73be28";
-  if (value < NORMAL_PACO2) return "#1a1aff";
+function getPaco2Color(value, normalPaco2) {
+  if (Math.abs(value - normalPaco2) < 0.5) return "#73be28";
+  if (value < normalPaco2) return "#1a1aff";
   return "#ff1a1a";
 }
 
@@ -160,13 +157,33 @@ function ConstantPhSlider({
 }
 
 export default function HHEquationConstantPH() {
-  const [hco3, setHco3] = useState(NORMAL_HCO3);
+  const { unit } = usePressureUnit();
 
-  // PaCO2 is derived from HCO3, rounded to nearest integer
+  const CO2_FACTOR = getCO2Factor(unit);
+  const { min: PACO2_MIN, max: PACO2_MAX } = getPaco2Range(unit);
+  const normalPaco2 = getNormalPaco2(unit);
+
+  
+  const RATIO = useMemo(
+    () => CO2_FACTOR * Math.pow(10, FIXED_PH - PKA),
+    [CO2_FACTOR]
+  );
+
+  const [hco3, setHco3] = useState(NORMAL_HCO3);
+  const [previousUnit, setPreviousUnit] = useState(unit);
+
+  // Reset to normal values when unit changes
+  useEffect(() => {
+    if (previousUnit === unit) return;
+    setHco3(NORMAL_HCO3);
+    setPreviousUnit(unit);
+  }, [unit, previousUnit]);
+
+  // PaCO2 is always derived from HCO3 to maintain pH = 7.4
   const paco2 = useMemo(() => {
     if (hco3 <= 0) return 0;
     return clamp(roundInt(hco3 / RATIO), PACO2_MIN, PACO2_MAX);
-  }, [hco3]);
+  }, [hco3, RATIO, PACO2_MIN, PACO2_MAX]);
 
   // Dragging HCO3 → derive PaCO2
   const handleHco3Change = (val) => {
@@ -196,7 +213,7 @@ export default function HHEquationConstantPH() {
       }}
     >
       {/* Header — title only, plain white */}
-      <div
+      {/* <div
         style={{
           height: 60,
           display: "flex",
@@ -205,10 +222,8 @@ export default function HHEquationConstantPH() {
           borderBottom: "1px solid #eee",
         }}
       >
-        <span style={{ fontSize: 18, color: "#7a5a91", fontWeight: 600 }}>
-          HH Equation &amp; Constant pH
-        </span>
-      </div>
+        
+      </div> */}
 
       <div style={{ padding: "48px 32px 40px" }}>
         {/* pH display */}
@@ -247,11 +262,11 @@ export default function HHEquationConstantPH() {
           rightDisplay="100.0"
         />
 
-        {/* PaCO2 slider — integer, step 1 */}
+        {/* PaCO2 slider — integer, step 1, unit-aware */}
         <ConstantPhSlider
           label={
             <>
-              PaCO<sub>2</sub>
+              PaCO<sub>2</sub> ({unit})
             </>
           }
           value={paco2}
@@ -259,10 +274,10 @@ export default function HHEquationConstantPH() {
           max={PACO2_MAX}
           step={1}
           decimals={1}
-          thumbColor={getPaco2Color(paco2)}
+          thumbColor={getPaco2Color(paco2, normalPaco2)}
           onChange={handlePaco2Change}
-          leftDisplay="0.0"
-          rightDisplay="21.0"
+          leftDisplay={PACO2_MIN.toFixed(1)}
+          rightDisplay={PACO2_MAX.toFixed(1)}
         />
 
         <p

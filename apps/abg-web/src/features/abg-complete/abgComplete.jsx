@@ -5,6 +5,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import { usePressureUnit } from "../../context/PressureUnitContext";
 
 /* ─── Constants ─────────────────────────────────────────────────────────── */
 const SEA_ATM = 760;
@@ -19,42 +20,31 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 /* ─── Physics ────────────────────────────────────────────────────────────── */
 function calcHCO3(ph, paco2Mmhg) {
   const hco3 = 0.03 * paco2Mmhg * Math.pow(10, ph - 6.1);
-
-  // Snap to 24 for normal physiology
-  if (Math.abs(ph - 7.4) < 0.01 && Math.abs(paco2Mmhg - 40) < 1) {
-    return 24;
-  }
-
+  if (Math.abs(ph - 7.4) < 0.01 && Math.abs(paco2Mmhg - 40) < 1) return 24;
   return hco3;
 }
+
 function calcAA(pao2, fio2, paco2, unit) {
   if (
     unit === "kPa" &&
     Math.abs(pao2 - 13.3) < 0.05 &&
     Math.abs(paco2 - 5.3) < 0.05 &&
     Math.abs(fio2 - 0.21) < 0.005
-  ) {
-    return 0;
-  }
+  ) return 0;
 
   const pao2Mmhg = unit === "kPa" ? kpaToMmhg(pao2) : pao2;
-
-  // Reference logic:
-  // normal PaO2 baseline = 100 mmHg at FiO2 0.21
-  // extra oxygen above room air = (FiO2 - 0.21) * 588 mmHg
   const expectedO2 = 100 + (fio2 - 0.21) * 587;
-
   return expectedO2 - pao2Mmhg;
 }
 
 /* ─── Diagnosis ──────────────────────────────────────────────────────────── */
 function diagnose(ph, paco2Mmhg) {
   let base;
-  if (ph < 7.35) base = "Metabolic Acidosis";
+  if (ph < 7.35)       base = "Metabolic Acidosis";
   else if (ph <= 7.36) base = "Compensated Metabolic Acidosis";
   else if (ph <= 7.43) base = "Normal";
   else if (ph <= 7.46) base = "Compensated Metabolic Alkalosis";
-  else base = "Metabolic Alkalosis";
+  else                 base = "Metabolic Alkalosis";
 
   if (paco2Mmhg < 35) return "Respiratory Alkalosis and\n" + base;
   if (paco2Mmhg > 45) return "Respiratory Acidosis and\n" + base;
@@ -62,13 +52,13 @@ function diagnose(ph, paco2Mmhg) {
 }
 
 /* ─── Unit configs ───────────────────────────────────────────────────────── */
-const CFG_PACO2_KPA = { min: 0, max: 30, normal: 5.3, step: 0.1, dec: 1 };
-const CFG_PAO2_KPA = { min: 0, max: 54, normal: 13.3, step: 0.1, dec: 1 };
-const CFG_PACO2_MMHG = { min: 0, max: 100, normal: 40, step: 1, dec: 0 };
-const CFG_PAO2_MMHG = { min: 0, max: 150, normal: 100, step: 1, dec: 0 };
+const CFG_PACO2_KPA  = { min: 0, max: 30,  normal: 5.3,  step: 0.1, dec: 1 };
+const CFG_PAO2_KPA   = { min: 0, max: 54,  normal: 13.3, step: 0.1, dec: 1 };
+const CFG_PACO2_MMHG = { min: 0, max: 160, normal: 40,   step: 1,   dec: 0 };
+const CFG_PAO2_MMHG  = { min: 0, max: 400, normal: 100,  step: 1,   dec: 0 };
 
-const getPaco2Config = (u) => (u === "kPa" ? CFG_PACO2_KPA : CFG_PACO2_MMHG);
-const getPao2Config = (u) => (u === "kPa" ? CFG_PAO2_KPA : CFG_PAO2_MMHG);
+const getPaco2Config = (u) => (u === "kPa" ? CFG_PACO2_KPA  : CFG_PACO2_MMHG);
+const getPao2Config  = (u) => (u === "kPa" ? CFG_PAO2_KPA   : CFG_PAO2_MMHG);
 
 /* ─── useIsMobile ────────────────────────────────────────────────────────── */
 function useIsMobile(bp = 700) {
@@ -87,45 +77,38 @@ function useIsMobile(bp = 700) {
    PHScale
 ═══════════════════════════════════════════════════════════════════════════ */
 function PHScale({ ph, onChange }) {
-  const MIN = 6.8,
-    MAX = 7.85;
-  const ref = useRef(null);
+  const MIN = 6.8, MAX = 7.85;
+  const ref  = useRef(null);
   const drag = useRef(false);
-  const st = useRef({ x: 0, ph: 7.4 });
+  const st   = useRef({ x: 0, ph: 7.4 });
 
-  const move = useCallback(
-    (cx) => {
-      if (!drag.current || !ref.current) return;
-      const w = ref.current.getBoundingClientRect().width;
-      const dph = ((cx - st.current.x) / w) * 0.3;
-      onChange(r2(clamp(st.current.ph + dph, MIN, MAX)));
-    },
-    [onChange],
-  );
+  const move = useCallback((cx) => {
+    if (!drag.current || !ref.current) return;
+    const w   = ref.current.getBoundingClientRect().width;
+    const dph = ((cx - st.current.x) / w) * 0.3;
+    onChange(r2(clamp(st.current.ph + dph, MIN, MAX)));
+  }, [onChange]);
 
   useEffect(() => {
     const pm = (e) => move(e.clientX);
-    const pu = () => {
-      drag.current = false;
-    };
+    const pu = () => { drag.current = false; };
     window.addEventListener("pointermove", pm);
-    window.addEventListener("pointerup", pu);
+    window.addEventListener("pointerup",   pu);
     return () => {
       window.removeEventListener("pointermove", pm);
-      window.removeEventListener("pointerup", pu);
+      window.removeEventListener("pointerup",   pu);
     };
   }, [move]);
 
-  const N = 7,
-    STEP = 0.01;
+  const N = 7, STEP = 0.01;
   const winMin = r2(ph - 3 * STEP);
-  const segs = Array.from({ length: N }, (_, i) => r2(winMin + i * STEP));
+  const segs   = Array.from({ length: N }, (_, i) => r2(winMin + i * STEP));
 
   const rgb = (v) => {
-    if (v < 7.35) return [239, 68, 68];
+    if (v < 7.35)  return [239, 68,  68];
     if (v <= 7.36) return [250, 204, 21];
-    if (v <= 7.43) return [34, 197, 94];
-    if (v <= 7.46) return [96, 165, 250];
+    if (v <= 7.43) return [34,  197, 94];
+    if (v <= 7.46) return [96,  165, 250];
     return [59, 130, 246];
   };
 
@@ -135,57 +118,38 @@ function PHScale({ ph, onChange }) {
         const x = ((v - winMin) / (N * STEP)) * 100;
         if (x < -5 || x > 105) return null;
         return (
-          <div
-            key={v}
-            style={{
-              position: "absolute",
-              left: `${x}%`,
-              top: -6,
-              bottom: -6,
-              width: 2,
-              background: "#bbb",
-              zIndex: 5,
-              pointerEvents: "none",
-            }}
-          />
+          <div key={v} style={{
+            position: "absolute", left: `${x}%`, top: -6, bottom: -6,
+            width: 2, background: "#bbb", zIndex: 5, pointerEvents: "none",
+          }} />
         );
       })}
       <div
         ref={ref}
         onPointerDown={(e) => {
           drag.current = true;
-          st.current = { x: e.clientX, ph };
+          st.current   = { x: e.clientX, ph };
           e.preventDefault();
         }}
         style={{
-          height: 52,
-          display: "flex",
-          cursor: "ew-resize",
-          overflow: "hidden",
-          borderRadius: 10,
-          touchAction: "none",
+          height: 52, display: "flex", cursor: "ew-resize",
+          overflow: "hidden", borderRadius: 10, touchAction: "none",
         }}
       >
         {segs.map((v) => {
           const dist = Math.abs(v - ph);
-          const op = Math.max(0.18, 1 - dist * 14);
+          const op   = Math.max(0.18, 1 - dist * 14);
           const [rr, gg, bb] = rgb(v);
-          const cur = dist < 0.006;
+          const cur  = dist < 0.006;
           return (
-            <div
-              key={v}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: `rgba(${rr},${gg},${bb},${op})`,
-                fontSize: cur ? 15 : 11,
-                fontWeight: cur ? 800 : 500,
-                color: cur ? "#111" : "#bbb",
-                borderRight: "1px solid rgba(0,0,0,0.04)",
-              }}
-            >
+            <div key={v} style={{
+              flex: 1, display: "flex", alignItems: "center",
+              justifyContent: "center",
+              background: `rgba(${rr},${gg},${bb},${op})`,
+              fontSize: cur ? 15 : 11, fontWeight: cur ? 800 : 500,
+              color: cur ? "#111" : "#bbb",
+              borderRight: "1px solid rgba(0,0,0,0.04)",
+            }}>
               {v.toFixed(2)}
             </div>
           );
@@ -197,130 +161,80 @@ function PHScale({ ph, onChange }) {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    VerticalBar
-   visMin / visMax  =  kPa range shown on the bar (0–30 for PaCO₂, 0–100 for HCO₃)
 ═══════════════════════════════════════════════════════════════════════════ */
 function VerticalBar({
-  title,
-  value,
-  bgColor,
-  circleColor,
-  ticks,
-  isInteractive,
-  onDrag,
-  visMin,
-  visMax,
-  barH,
-  barW,
-  circleSize,
-  tickFontSize,
-  titleSize,
+  title, value, bgColor, circleColor, ticks,
+  isInteractive, onDrag, visMin, visMax,
+  barH, barW, circleSize, tickFontSize, titleSize,
 }) {
-  const ref = useRef(null);
+  const ref  = useRef(null);
   const drag = useRef(false);
 
-  const compute = useCallback(
-    (clientY) => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const ratio = clamp(1 - (clientY - rect.top) / rect.height, 0, 1);
-      onDrag && onDrag(ratio);
-    },
-    [onDrag],
-  );
+  const compute = useCallback((clientY) => {
+    if (!ref.current) return;
+    const rect  = ref.current.getBoundingClientRect();
+    const ratio = clamp(1 - (clientY - rect.top) / rect.height, 0, 1);
+    onDrag && onDrag(ratio);
+  }, [onDrag]);
 
   useEffect(() => {
     if (!isInteractive) return;
-    const mm = (e) => {
-      if (drag.current) compute(e.clientY);
-    };
-    const mu = () => {
-      drag.current = false;
-    };
+    const mm = (e) => { if (drag.current) compute(e.clientY); };
+    const mu = () => { drag.current = false; };
     window.addEventListener("pointermove", mm);
-    window.addEventListener("pointerup", mu);
+    window.addEventListener("pointerup",   mu);
     return () => {
       window.removeEventListener("pointermove", mm);
-      window.removeEventListener("pointerup", mu);
+      window.removeEventListener("pointerup",   mu);
     };
   }, [isInteractive, compute]);
 
-  const pct = clamp(((value - visMin) / (visMax - visMin)) * 100, 0, 100);
+  const pct       = clamp(((value - visMin) / (visMax - visMin)) * 100, 0, 100);
   const circleTop = `${100 - pct}%`;
 
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div
-        style={{
-          fontWeight: 700,
-          fontSize: titleSize,
-          marginBottom: 10,
-          textAlign: "center",
-        }}
+        style={{ fontWeight: 700, fontSize: titleSize, marginBottom: 10, textAlign: "center" }}
         dangerouslySetInnerHTML={{ __html: title }}
       />
       <div
         ref={ref}
-        onPointerDown={
-          isInteractive
-            ? (e) => {
-                drag.current = true;
-                compute(e.clientY);
-                e.preventDefault();
-              }
-            : undefined
-        }
+        onPointerDown={isInteractive ? (e) => {
+          drag.current = true;
+          compute(e.clientY);
+          e.preventDefault();
+        } : undefined}
         style={{
-          width: barW,
-          height: barH,
-          background: bgColor,
+          width: barW, height: barH, background: bgColor,
           position: "relative",
           cursor: isInteractive ? "ns-resize" : "default",
-          touchAction: "none",
-          userSelect: "none",
-          flexShrink: 0,
+          touchAction: "none", userSelect: "none", flexShrink: 0,
         }}
       >
         {ticks.map(({ label, pct: tp }) => (
-          <div
-            key={label}
-            style={{
-              position: "absolute",
-              top: `${tp}%`,
-              transform: "translateY(-50%)",
-              width: "100%",
-              textAlign: "center",
-              fontSize: tickFontSize,
-              color: "#fff",
-              fontWeight: 600,
-              pointerEvents: "none",
-            }}
-          >
+          <div key={label} style={{
+            position: "absolute", top: `${tp}%`,
+            transform: "translateY(-50%)",
+            width: "100%", textAlign: "center",
+            fontSize: tickFontSize, color: "#fff", fontWeight: 600,
+            pointerEvents: "none",
+          }}>
             {label}
           </div>
         ))}
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: circleTop,
-            transform: "translate(-50%, -50%)",
-            width: circleSize,
-            height: circleSize,
-            borderRadius: "50%",
-            background: circleColor,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: 800,
-            fontSize: circleSize >= 50 ? 18 : circleSize >= 38 ? 13 : 11,
-            color: "#111",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
-            pointerEvents: "none",
-            zIndex: 2,
-          }}
-        >
+        <div style={{
+          position: "absolute", left: "50%", top: circleTop,
+          transform: "translate(-50%, -50%)",
+          width: circleSize, height: circleSize, borderRadius: "50%",
+          background: circleColor,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: 800,
+          fontSize: circleSize >= 50 ? 18 : circleSize >= 38 ? 13 : 11,
+          color: "#111",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+          pointerEvents: "none", zIndex: 2,
+        }}>
           {value.toFixed(1)}
         </div>
       </div>
@@ -332,37 +246,39 @@ function VerticalBar({
    ABGTutor – main component
 ═══════════════════════════════════════════════════════════════════════════ */
 export default function ABGTutor() {
-  const unit = "kPa";
+  const { unit } = usePressureUnit();          // ← now reads from context
   const isMobile = useIsMobile(700);
 
   const paco2Cfg = getPaco2Config(unit);
-  const pao2Cfg = getPao2Config(unit);
+  const pao2Cfg  = getPao2Config(unit);
 
-  const [paco2, setPaco2] = useState(paco2Cfg.normal);
-  const [ph, setPh] = useState(7.4);
-  const [pao2, setPao2] = useState(pao2Cfg.normal);
-  const [fio2, setFio2] = useState(0.21);
+  const [paco2, setPaco2]       = useState(paco2Cfg.normal);
+  const [ph, setPh]             = useState(7.4);
+  const [pao2, setPao2]         = useState(pao2Cfg.normal);
+  const [fio2, setFio2]         = useState(0.21);
   const [popupOpen, setPopupOpen] = useState(false);
+  const [previousUnit, setPreviousUnit] = useState(unit);
 
-  const paco2Mmhg = kpaToMmhg(paco2);
-  const hco3 = useMemo(() => {
-    return Math.round(calcHCO3(ph, paco2Mmhg));
-  }, [ph, paco2Mmhg]);
-  const aaGrad = useMemo(() => {
-    return Math.round(calcAA(pao2, fio2, paco2, unit));
-  }, [pao2, fio2, paco2, unit]);
+  // Reset to normal values on unit change
+  useEffect(() => {
+    if (previousUnit === unit) return;
+    setPaco2(paco2Cfg.normal);
+    setPao2(pao2Cfg.normal);
+    setPreviousUnit(unit);
+  }, [unit, previousUnit, paco2Cfg.normal, pao2Cfg.normal]);
+
+  const paco2Mmhg = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
+
+  const hco3 = useMemo(() => Math.round(calcHCO3(ph, paco2Mmhg)), [ph, paco2Mmhg]);
+  const aaGrad = useMemo(() => Math.round(calcAA(pao2, fio2, paco2, unit)), [pao2, fio2, paco2, unit]);
   const diagnosis = useMemo(() => diagnose(ph, paco2Mmhg), [ph, paco2Mmhg]);
 
   const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
-  const extTarget =
-    paco2Mmhg < 40
-      ? { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" }
-      : {
-          label: "Metabolic Alkalosis",
-          url: "https://abg.leadows.com/metabolic-alkalosis/",
-        };
+  const extTarget = paco2Mmhg < 40
+    ? { label: "Anion Gap",           url: "https://abg.leadows.com/anion-gap/" }
+    : { label: "Metabolic Alkalosis", url: "https://abg.leadows.com/metabolic-alkalosis/" };
 
-  const isAcidic = ph <= 7.34;
+  const isAcidic   = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
   const flowUrl = isAcidic
     ? "https://abg.leadows.com/acidosis-flowchart/"
@@ -370,28 +286,23 @@ export default function ABGTutor() {
       ? "https://abg.leadows.com/alkalosis-flowchart/"
       : null;
 
-  const handlePaco2Drag = useCallback(
-    (ratio) => {
-      const vis = ratio * paco2Cfg.max;
-      const stepped = Math.round(vis / paco2Cfg.step) * paco2Cfg.step;
-      setPaco2(clamp(r1(stepped), paco2Cfg.min, paco2Cfg.max));
-    },
-    [paco2Cfg],
-  );
+  const handlePaco2Drag = useCallback((ratio) => {
+    const vis     = ratio * paco2Cfg.max;
+    const stepped = Math.round(vis / paco2Cfg.step) * paco2Cfg.step;
+    setPaco2(clamp(r1(stepped), paco2Cfg.min, paco2Cfg.max));
+  }, [paco2Cfg]);
 
-  /* ── Tick density changes on mobile ──────────────────────────────────── */
+  /* ── PaCO2 ticks — kPa: 0,2,4…30 | mmHg: 0,16,32…160 ── */
   const paco2Ticks = useMemo(() => {
-    const values = [];
-
-    for (let n = 30; n >= 0; n -= 2) {
-      values.push(n);
-    }
+    const tickStep = unit === "kPa" ? 2 : 16;
+    const values   = [];
+    for (let n = paco2Cfg.max; n >= 0; n -= tickStep) values.push(n);
 
     return values.map((n) => ({
-      label: n.toFixed(1),
-      pct: ((paco2Cfg.max - n) / paco2Cfg.max) * 100,
+      label: n.toFixed(unit === "kPa" ? 1 : 0),
+      pct:   ((paco2Cfg.max - n) / paco2Cfg.max) * 100,
     }));
-  }, [paco2Cfg.max]);
+  }, [unit, paco2Cfg.max]);
 
   const hco3Ticks = useMemo(() => {
     const tickStep = isMobile ? 25 : 10;
@@ -401,12 +312,12 @@ export default function ABGTutor() {
     });
   }, [isMobile]);
 
-  /* ── Responsive bar sizing ───────────────────────────────────────────── */
-  const barH = isMobile ? 270 : 460;
-  const barW = isMobile ? 58 : 90;
-  const circSz = isMobile ? 40 : 56;
-  const tickFont = isMobile ? 11 : 18;
-  const titleSz = isMobile ? 16 : 26;
+  /* ── Responsive bar sizing ── */
+  const barH     = isMobile ? 270 : 460;
+  const barW     = isMobile ? 58  : 90;
+  const circSz   = isMobile ? 40  : 56;
+  const tickFont = isMobile ? 11  : 18;
+  const titleSz  = isMobile ? 16  : 26;
 
   return (
     <>
@@ -423,7 +334,6 @@ export default function ABGTutor() {
           justify-content: center;
         }
 
-        /* ── 3-col desktop grid ── */
         .abg-grid {
           width: 100%;
           max-width: 960px;
@@ -451,14 +361,10 @@ export default function ABGTutor() {
           display: flex;
           flex-direction: column;
         }
-        .interp-box h2 {
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 60px;
-        }
-        .interp-body { font-size: 18px; line-height: 1.55; }
+        .interp-box h2 { font-size: 24px; font-weight: 700; margin-bottom: 60px; }
+        .interp-body   { font-size: 18px; line-height: 1.55; }
 
-        .sliders-box { background:transparent; padding: 14px 14px 26px; }
+        .sliders-box { background: transparent; padding: 14px 14px 26px; }
         .s-row       { margin-bottom: 14px; }
         .s-row:last-child { margin-bottom: 0; }
         .s-label { font-size: 17px; margin-bottom: 2px; }
@@ -518,43 +424,23 @@ export default function ABGTutor() {
           z-index: 10;
         }
 
-        /* ════════════════════════════════════════════════════════════════
-           MOBILE  ≤ 700 px
-           Keep 3 columns — just shrink everything proportionally.
-           Bars stay vertical, circles stay circular, labels just smaller.
-        ════════════════════════════════════════════════════════════════ */
         @media (max-width: 700px) {
           .abg-root  { padding: 12px 4px 32px; }
-
-          .abg-grid {
-            grid-template-columns: 68px 1fr 68px;
-            gap: 6px;
-            max-width: 100%;
-          }
-
-          .abg-side { padding: 8px 3px 12px; }
-
-          .interp-box {
-            min-height: 150px;
-            padding: 10px 6px 12px;
-          }
-          .interp-box h2    { font-size: 14px; margin-bottom: 18px; }
-          .interp-body      { font-size: 12px; line-height: 1.45; }
-
-          .sliders-box  { padding: 8px 6px 14px; }
-          .s-row        { margin-bottom: 10px; }
-          .s-label      { font-size: 13px; }
-          .s-val        { font-size: 10px; }
-
-          .ph-title { font-size: 14px; margin: 10px 0 6px; }
-
-          .ext-btn  { height: 56px; font-size: 11px; margin-top: 28px; }
-
-          .popup       { width: 190px; padding: 12px 12px 14px; }
-          .popup-title { font-size: 12px; margin-bottom: 8px; }
-          .popup-btn   { font-size: 11px; padding: 8px 6px; }
-
-          .chart-btn { width: 24px; height: 24px; font-size: 12px; }
+          .abg-grid  { grid-template-columns: 68px 1fr 68px; gap: 6px; max-width: 100%; }
+          .abg-side  { padding: 8px 3px 12px; }
+          .interp-box { min-height: 150px; padding: 10px 6px 12px; }
+          .interp-box h2 { font-size: 14px; margin-bottom: 18px; }
+          .interp-body   { font-size: 12px; line-height: 1.45; }
+          .sliders-box   { padding: 8px 6px 14px; }
+          .s-row         { margin-bottom: 10px; }
+          .s-label       { font-size: 13px; }
+          .s-val         { font-size: 10px; }
+          .ph-title      { font-size: 14px; margin: 10px 0 6px; }
+          .ext-btn       { height: 56px; font-size: 11px; margin-top: 28px; }
+          .popup         { width: 190px; padding: 12px 12px 14px; }
+          .popup-title   { font-size: 12px; margin-bottom: 8px; }
+          .popup-btn     { font-size: 11px; padding: 8px 6px; }
+          .chart-btn     { width: 24px; height: 24px; font-size: 12px; }
         }
       `}</style>
 
@@ -574,7 +460,7 @@ export default function ABGTutor() {
           {/* LEFT – PaCO₂ */}
           <div className="abg-side">
             <VerticalBar
-              title="PaCO<sub>2</sub>"
+              title={`PaCO<sub>2</sub><br/><span style="font-size:0.6em;font-weight:500">(${unit})</span>`}
               value={r1(paco2)}
               bgColor="#e8394e"
               circleColor="#fff"
@@ -605,45 +491,23 @@ export default function ABGTutor() {
 
             <div
               className="ph-wrap"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
             >
               {flowUrl && (
                 <div
                   onClick={() => (window.location.href = flowUrl)}
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
+                    position: "absolute", top: 0, right: 0,
+                    width: 48, height: 48, borderRadius: "50%",
                     border: "1.5px solid #a00",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#a00",
-                    cursor: "pointer",
-                    background: "#fff",
-                    zIndex: 10,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#a00", cursor: "pointer", background: "#fff", zIndex: 10,
                   }}
-                  title={
-                    isAcidic ? "Acidosis Flowchart" : "Alkalosis Flowchart"
-                  }
+                  title={isAcidic ? "Acidosis Flowchart" : "Alkalosis Flowchart"}
                 >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="1.5"
+                    strokeLinecap="round" strokeLinejoin="round">
                     <rect x="10" y="3" width="4" height="4" />
                     <path d="M12 7v4" />
                     <path d="M6 11h12" />
@@ -662,30 +526,20 @@ export default function ABGTutor() {
 
             <div className="sliders-box">
               <div className="s-row">
-                <div className="s-label">
-                  PaO<sub>2</sub>
-                </div>
+                <div className="s-label">PaO<sub>2</sub> ({unit})</div>
                 <div className="s-val">{pao2.toFixed(pao2Cfg.dec)}</div>
                 <input
                   type="range"
-                  min={pao2Cfg.min}
-                  max={pao2Cfg.max}
-                  step={pao2Cfg.step}
+                  min={pao2Cfg.min} max={pao2Cfg.max} step={pao2Cfg.step}
                   value={pao2}
-                  onChange={(e) =>
-                    setPao2(clamp(+e.target.value, pao2Cfg.min, pao2Cfg.max))
-                  }
+                  onChange={(e) => setPao2(clamp(+e.target.value, pao2Cfg.min, pao2Cfg.max))}
                 />
               </div>
               <div className="s-row">
                 <div className="s-label">FiO₂</div>
                 <div className="s-val">{fio2.toFixed(2)}</div>
                 <input
-                  type="range"
-                  min={0.21}
-                  max={1}
-                  step={0.01}
-                  value={fio2}
+                  type="range" min={0.21} max={1} step={0.01} value={fio2}
                   onChange={(e) => setFio2(clamp(+e.target.value, 0.21, 1))}
                 />
               </div>
@@ -695,10 +549,8 @@ export default function ABGTutor() {
               {isChanged && popupOpen && (
                 <div className="popup">
                   <div className="popup-title">Extended ABG</div>
-                  <button
-                    className="popup-btn"
-                    onClick={() => (window.location.href = extTarget.url)}
-                  >
+                  <button className="popup-btn"
+                    onClick={() => (window.location.href = extTarget.url)}>
                     {extTarget.label}
                   </button>
                   <div className="popup-arrow" />
@@ -713,7 +565,6 @@ export default function ABGTutor() {
               </button>
             </div>
           </div>
-          {/* end centre */}
 
           {/* RIGHT – HCO₃ */}
           <div className="abg-side">
