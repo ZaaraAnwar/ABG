@@ -164,6 +164,10 @@ function Aagradient() {
         {view === "calculator" && (
           <>
             <button
+              onClick={() => {
+                window.location.href =
+                  "https://abg.leadows.com/a-a-gradient-about/";
+              }}
               style={{
                 background: "none",
                 border: "none",
@@ -890,7 +894,7 @@ function Aagradient() {
                 </div>
                 <div
                   style={{
-                    fontSize: "0.75rem", 
+                    fontSize: "0.75rem",
                     fontWeight: "bold",
                     color: "#6b7280",
                     marginTop: "0.25rem",

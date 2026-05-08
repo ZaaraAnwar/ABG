@@ -63,7 +63,7 @@ function ScaleSlider({
     const trackRight = rect.width - THUMB_R;
     const ratio = Math.max(
       0,
-      Math.min(1, (clientX - rect.left - trackLeft) / (trackRight - trackLeft))
+      Math.min(1, (clientX - rect.left - trackLeft) / (trackRight - trackLeft)),
     );
     const raw = min + ratio * (max - min);
     const stepped = Math.round(raw / step) * step;
@@ -147,23 +147,40 @@ function ScaleSlider({
       </div>
 
       {/* Track */}
-      <div style={{ position: "relative", userSelect: "none", touchAction: "none" }}>
+      <div
+        style={{
+          position: "relative",
+          userSelect: "none",
+          touchAction: "none",
+        }}
+      >
         <canvas
           ref={canvasRef}
-          style={{ width: "100%", height: 22, display: "block", cursor: "pointer" }}
+          style={{
+            width: "100%",
+            height: 22,
+            display: "block",
+            cursor: "pointer",
+          }}
           onMouseDown={(e) => {
             isDragging.current = true;
             onChange(getValueFromX(e.clientX));
           }}
           onMouseMove={handlePointer}
-          onMouseUp={() => { isDragging.current = false; }}
-          onMouseLeave={() => { isDragging.current = false; }}
+          onMouseUp={() => {
+            isDragging.current = false;
+          }}
+          onMouseLeave={() => {
+            isDragging.current = false;
+          }}
           onTouchStart={(e) => {
             isDragging.current = true;
             onChange(getValueFromX(e.touches[0].clientX));
           }}
           onTouchMove={handlePointer}
-          onTouchEnd={() => { isDragging.current = false; }}
+          onTouchEnd={() => {
+            isDragging.current = false;
+          }}
         />
       </div>
 
@@ -203,7 +220,10 @@ export default function ABGGraph() {
   const paco2ForDiagnosis = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
   const paco2ForPlot = paco2;
 
-  const title = useMemo(() => interpret(ph, paco2ForDiagnosis), [ph, paco2ForDiagnosis]);
+  const title = useMemo(
+    () => interpret(ph, paco2ForDiagnosis),
+    [ph, paco2ForDiagnosis],
+  );
   const regions = useMemo(() => buildRegions(), []);
 
   const paco2ThumbColor = getPaco2ThumbColor(paco2, normalPaco2);
@@ -226,11 +246,25 @@ export default function ABGGraph() {
       }}
     >
       {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8, flexShrink: 0 }}>
-        
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 8,
+          flexShrink: 0,
+        }}
+      >
         <div
-          onClick={() => { window.location.href = "https://abg.leadows.com/abg-graph-info/"; }}
-          style={{ position: "absolute", right: 16, top: 10, cursor: "pointer" }}
+          onClick={() => {
+            window.location.href = "https://abg.leadows.com/abg-graph-info/";
+          }}
+          style={{
+            position: "absolute",
+            right: 16,
+            top: 10,
+            cursor: "pointer",
+          }}
         >
           <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
         </div>
@@ -239,7 +273,11 @@ export default function ABGGraph() {
       {/* ── Sliders ── */}
       <div style={{ flexShrink: 0 }}>
         <ScaleSlider
-          label={<>PaCO<sub>2</sub> ({unit})</>}
+          label={
+            <>
+              PaCO<sub>2</sub> ({unit})
+            </>
+          }
           value={paco2}
           min={paco2Min}
           max={paco2Max}
@@ -318,8 +356,6 @@ export default function ABGGraph() {
             width: "100%",
             height: "100%",
             overflow: "visible",
-            border: "1.5px solid #e0e0e0",
-            borderRadius: 8,
           }}
         >
           {/* Y-axis label — inside SVG, rotated tight beside tick numbers */}
@@ -338,8 +374,21 @@ export default function ABGGraph() {
           {/* Y-axis grid */}
           {Y_TICKS.map((val) => (
             <g key={`gy-${val}`}>
-              <line x1="0" x2={SVG_W} y1={mapY(val)} y2={mapY(val)} stroke="#eee" strokeWidth="1" />
-              <text x="-10" y={mapY(val) + 5} fontSize="14" fill="#888" textAnchor="end">
+              <line
+                x1="0"
+                x2={SVG_W}
+                y1={mapY(val)}
+                y2={mapY(val)}
+                stroke="#eee"
+                strokeWidth="1"
+              />
+              <text
+                x="-10"
+                y={mapY(val) + 5}
+                fontSize="14"
+                fill="#888"
+                textAnchor="end"
+              >
                 {val}
               </text>
             </g>
@@ -348,8 +397,21 @@ export default function ABGGraph() {
           {/* X-axis grid */}
           {[6.8, 7.0, 7.2, 7.4, 7.6, 7.8].map((val) => (
             <g key={`gx-${val}`}>
-              <line x1={mapX(val)} x2={mapX(val)} y1="0" y2={SVG_H} stroke="#eee" strokeWidth="1" />
-              <text x={mapX(val)} y={SVG_H + 20} fontSize="14" fill="#888" textAnchor="middle">
+              <line
+                x1={mapX(val)}
+                x2={mapX(val)}
+                y1="0"
+                y2={SVG_H}
+                stroke="#eee"
+                strokeWidth="1"
+              />
+              <text
+                x={mapX(val)}
+                y={SVG_H + 20}
+                fontSize="14"
+                fill="#888"
+                textAnchor="middle"
+              >
                 {val.toFixed(1)}
               </text>
             </g>
@@ -359,9 +421,12 @@ export default function ABGGraph() {
           {regions.map((r, i) => (
             <g key={`region-${i}`} fill={r.color} opacity="0.8">
               {r.points.map((pt, j) =>
-                pt.ph >= PH_MIN && pt.ph <= PH_MAX && pt.pco2 >= 0 && pt.pco2 <= 160 ? (
+                pt.ph >= PH_MIN &&
+                pt.ph <= PH_MAX &&
+                pt.pco2 >= 0 &&
+                pt.pco2 <= 160 ? (
                   <circle key={j} cx={mapX(pt.ph)} cy={mapY(pt.pco2)} r="6" />
-                ) : null
+                ) : null,
               )}
             </g>
           ))}
@@ -403,8 +468,19 @@ export default function ABGGraph() {
           { color: "#9aaeb9", label: "Chr. Resp. Alk." },
           { color: "#ff1744", label: "Selected value" },
         ].map(({ color, label }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+          <div
+            key={label}
+            style={{ display: "flex", alignItems: "center", gap: 5 }}
+          >
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: color,
+                flexShrink: 0,
+              }}
+            />
             <span>{label}</span>
           </div>
         ))}

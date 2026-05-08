@@ -23,7 +23,7 @@ export default function UnderstandingPH() {
   const h = phToH(ph);
 
   const handlePhChange = (newPh) => setPh(newPh);
-  const handleHChange  = (newH)  => setPh(hToPh(newH));
+  const handleHChange = (newH) => setPh(hToPh(newH));
 
   const curvePoints = [];
   for (let pt = PH_MIN; pt <= PH_MAX; pt += 0.02) {
@@ -63,12 +63,11 @@ export default function UnderstandingPH() {
           position: "relative",
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 700, color: "#6b4fa0" }}>
-          Understanding pH
-        </div>
+        
         <div
           onClick={() => {
-            window.location.href = "https://abg.leadows.com/understanding-ph-info/";
+            window.location.href =
+              "https://abg.leadows.com/understanding-ph-info/";
           }}
           style={{ position: "absolute", right: 0, top: 0, cursor: "pointer" }}
         >
@@ -77,16 +76,33 @@ export default function UnderstandingPH() {
       </div>
 
       {/* ── Sliders ── */}
-      <div style={{ flexShrink: 0 }}>
+      <div
+        style={{
+          flexShrink: 0,
+          width: "100%",
+          maxWidth: 900,
+          margin: "0 auto",
+        }}
+      >
         <Slider
-          label={<>H<sup>+</sup></>}
+          label={
+            <>
+              H<sup>+</sup>
+            </>
+          }
           value={parseFloat(h.toFixed(1))}
           min={H_MIN}
           max={H_MAX}
           step={0.5}
           decimals={1}
           thumbColor="#4caf50"
-          rightLabel={<>{H_MAX.toFixed(1)}<br />nMol</>}
+          rightLabel={
+            <>
+              {H_MAX.toFixed(1)}
+              <br />
+              nMol
+            </>
+          }
           onChange={handleHChange}
         />
         <Slider
@@ -121,7 +137,13 @@ export default function UnderstandingPH() {
             lineHeight: 1.2,
           }}
         >
-          <span style={{ display: "block", borderBottom: "1.5px solid #333", paddingBottom: 2 }}>
+          <span
+            style={{
+              display: "block",
+              borderBottom: "1.5px solid #333",
+              paddingBottom: 2,
+            }}
+          >
             1
           </span>
           <span style={{ display: "block", paddingTop: 2 }}>
@@ -144,15 +166,15 @@ export default function UnderstandingPH() {
         {isNormal
           ? `Normal — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
           : ph < 7.35
-          ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
-          : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`}
+            ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
+            : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`}
       </div>
 
       {/* ── Chart — fills remaining space ── */}
       <div
         style={{
           flex: 1,
-          minHeight: 0,           // critical: lets flex child shrink
+          minHeight: 0, // critical: lets flex child shrink
           position: "relative",
           paddingLeft: 16,
           paddingBottom: 28,
@@ -183,8 +205,6 @@ export default function UnderstandingPH() {
             width: "100%",
             height: "100%",
             overflow: "visible",
-            border: "1.5px solid #e0e0e0",
-            borderRadius: 8,
           }}
         >
           {/* Y-axis label — inside SVG, snug beside tick numbers */}
@@ -204,8 +224,21 @@ export default function UnderstandingPH() {
           {/* Y grid */}
           {[0, 20, 40, 60, 80, 100, 120, 140, 160].map((val) => (
             <g key={`gy-${val}`}>
-              <line x1="0" x2={SVG_W} y1={mapY(val)} y2={mapY(val)} stroke="#ddd" strokeWidth="1.5" />
-              <text x="-10" y={mapY(val) + 5} fontSize="14" fill="#888" textAnchor="end">
+              <line
+                x1="0"
+                x2={SVG_W}
+                y1={mapY(val)}
+                y2={mapY(val)}
+                stroke="#ddd"
+                strokeWidth="1.5"
+              />
+              <text
+                x="-10"
+                y={mapY(val) + 5}
+                fontSize="14"
+                fill="#888"
+                textAnchor="end"
+              >
                 {val}
               </text>
             </g>
@@ -214,8 +247,21 @@ export default function UnderstandingPH() {
           {/* X grid */}
           {[6.8, 7.0, 7.2, 7.4, 7.6, 7.8].map((val) => (
             <g key={`gx-${val}`}>
-              <line x1={mapX(val)} x2={mapX(val)} y1="0" y2={SVG_H} stroke="#ccc" strokeWidth="1.5" />
-              <text x={mapX(val)} y={SVG_H + 22} fontSize="14" fill="#888" textAnchor="middle">
+              <line
+                x1={mapX(val)}
+                x2={mapX(val)}
+                y1="0"
+                y2={SVG_H}
+                stroke="#ccc"
+                strokeWidth="1.5"
+              />
+              <text
+                x={mapX(val)}
+                y={SVG_H + 22}
+                fontSize="14"
+                fill="#888"
+                textAnchor="middle"
+              >
                 {val.toFixed(1)}
               </text>
             </g>
@@ -223,9 +269,12 @@ export default function UnderstandingPH() {
 
           {/* Normal range shading */}
           <rect
-            x={mapX(7.35)} y={0}
-            width={mapX(7.45) - mapX(7.35)} height={SVG_H}
-            fill="#4caf50" opacity="0.06"
+            x={mapX(7.35)}
+            y={0}
+            width={mapX(7.45) - mapX(7.35)}
+            height={SVG_H}
+            fill="#4caf50"
+            opacity="0.06"
           />
 
           {/* Curve */}
@@ -240,12 +289,32 @@ export default function UnderstandingPH() {
           />
 
           {/* Normal range dashed markers */}
-          <line x1={mapX(7.35)} x2={mapX(7.35)} y1="0" y2={SVG_H} stroke="#4caf50" strokeWidth="1" strokeDasharray="4,3" opacity="0.4" />
-          <line x1={mapX(7.45)} x2={mapX(7.45)} y1="0" y2={SVG_H} stroke="#4caf50" strokeWidth="1" strokeDasharray="4,3" opacity="0.4" />
+          <line
+            x1={mapX(7.35)}
+            x2={mapX(7.35)}
+            y1="0"
+            y2={SVG_H}
+            stroke="#4caf50"
+            strokeWidth="1"
+            strokeDasharray="4,3"
+            opacity="0.4"
+          />
+          <line
+            x1={mapX(7.45)}
+            x2={mapX(7.45)}
+            y1="0"
+            y2={SVG_H}
+            stroke="#4caf50"
+            strokeWidth="1"
+            strokeDasharray="4,3"
+            opacity="0.4"
+          />
 
           {/* Active dot */}
           <circle
-            cx={mapX(ph)} cy={mapY(h)} r="10"
+            cx={mapX(ph)}
+            cy={mapY(h)}
+            r="10"
             fill={dotColor}
             style={{ transition: "cx 0.1s linear, cy 0.1s linear" }}
           />

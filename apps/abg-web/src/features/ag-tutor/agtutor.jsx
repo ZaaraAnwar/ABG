@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -19,7 +20,17 @@ const pointOnArc = (cx, cy, radius, angle) => {
   return { x: cx + radius * Math.cos(rad), y: cy - radius * Math.sin(rad) };
 };
 
-function GaugeControl({ label, unit, value, min, max, step, color, marks, onChange }) {
+function GaugeControl({
+  label,
+  unit,
+  value,
+  min,
+  max,
+  step,
+  color,
+  marks,
+  onChange,
+}) {
   const ratio = (value - min) / (max - min);
   const currentAngle = 180 - ratio * 180;
   const backgroundArc = buildArcPath(120, 126, 84, 180, 0);
@@ -29,24 +40,68 @@ function GaugeControl({ label, unit, value, min, max, step, color, marks, onChan
   return (
     <div style={{ position: "relative", width: "100%", userSelect: "none" }}>
       <div style={{ position: "relative", height: "106px", width: "100%" }}>
-        <svg viewBox="0 0 240 148" style={{ height: "100%", width: "100%", overflow: "visible" }}>
+        <svg
+          viewBox="0 0 240 148"
+          style={{ height: "100%", width: "100%", overflow: "visible" }}
+        >
           {marks.map((mark) => {
             const mr = (mark - min) / (max - min);
             const angle = 180 - mr * 180;
             const pos = pointOnArc(120, 126, 104, angle);
             return (
-              <text key={mark} x={pos.x} y={pos.y} textAnchor="middle" fill="#b0b0b8" fontSize="9" fontWeight="600">
+              <text
+                key={mark}
+                x={pos.x}
+                y={pos.y}
+                textAnchor="middle"
+                fill="#b0b0b8"
+                fontSize="9"
+                fontWeight="600"
+              >
                 {mark === 0 ? "00" : `${mark}`}
               </text>
             );
           })}
-          <path d={backgroundArc} fill="none" stroke="#dde0e4" strokeWidth="5" strokeLinecap="round" />
-          <path d={activeArc} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" />
-          <circle cx={knob.x} cy={knob.y} r="5.5" fill="white" stroke="#9ca3af" strokeWidth="2" />
-          <text x="120" y="93" textAnchor="middle" fill="#111827" fontSize="23" fontWeight="700">
+          <path
+            d={backgroundArc}
+            fill="none"
+            stroke="#dde0e4"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <path
+            d={activeArc}
+            fill="none"
+            stroke={color}
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <circle
+            cx={knob.x}
+            cy={knob.y}
+            r="5.5"
+            fill="white"
+            stroke="#9ca3af"
+            strokeWidth="2"
+          />
+          <text
+            x="120"
+            y="93"
+            textAnchor="middle"
+            fill="#111827"
+            fontSize="23"
+            fontWeight="700"
+          >
             {Math.round(value)}
           </text>
-          <text x="120" y="108" textAnchor="middle" fill="#9ca3af" fontSize="9" fontWeight="500">
+          <text
+            x="120"
+            y="108"
+            textAnchor="middle"
+            fill="#9ca3af"
+            fontSize="9"
+            fontWeight="500"
+          >
             {unit}
           </text>
         </svg>
@@ -87,7 +142,15 @@ function GaugeControl({ label, unit, value, min, max, step, color, marks, onChan
 
 function ValueBadge({ title, value }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", minWidth: "64px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "2px",
+        minWidth: "64px",
+      }}
+    >
       <div
         style={{
           background: "#cc0000",
@@ -134,40 +197,30 @@ export default function AGTutor() {
 
     const isVentilating = alveolarVentilationL !== 0;
 
-    const paco2 = isVentilating
-      ? (200 * 0.863) / alveolarVentilationL
-      : null;
+    const paco2 = isVentilating ? (200 * 0.863) / alveolarVentilationL : null;
 
     const alveolarOxygen =
-      paco2 === null
-        ? null
-        : fio2 * (760 - 47) - paco2 / 0.8;
+      paco2 === null ? null : fio2 * (760 - 47) - paco2 / 0.8;
 
-    const pao2 =
-      alveolarOxygen === null
-        ? null
-        : alveolarOxygen - 5;
+    const pao2 = alveolarOxygen === null ? null : alveolarOxygen - 5;
 
     const aaGradient =
-      alveolarOxygen === null || pao2 === null
-        ? null
-        : alveolarOxygen - pao2;
+      alveolarOxygen === null || pao2 === null ? null : alveolarOxygen - pao2;
 
-    const ventilationState =
-      !isVentilating
-        ? "No effective alveolar ventilation"
-        : paco2 > 45
+    const ventilationState = !isVentilating
+      ? "No effective alveolar ventilation"
+      : paco2 > 45
         ? "Hypoventilation"
         : paco2 < 35
-        ? "Hyperventilation"
-        : "Normal ventilation";
+          ? "Hyperventilation"
+          : "Normal ventilation";
 
     const warning =
       frequency === 0
         ? "Frequency is zero — ventilation stops."
         : alveolarVentilationL === 0
-        ? "No effective alveolar ventilation."
-        : null;
+          ? "No effective alveolar ventilation."
+          : null;
 
     return {
       alveolarVentilationL,
@@ -282,7 +335,15 @@ export default function AGTutor() {
                 paddingBottom: "16px",
               }}
             >
-              <span style={{ fontSize: "1rem", fontWeight: "700", color: "#111827" }}>FiO&#8322;</span>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "700",
+                  color: "#111827",
+                }}
+              >
+                FiO&#8322;
+              </span>
 
               <div
                 style={{
@@ -296,7 +357,11 @@ export default function AGTutor() {
               >
                 <button
                   type="button"
-                  onClick={() => setFio2((c) => clamp(Number((c - 0.01).toFixed(2)), 0.21, 1.0))}
+                  onClick={() =>
+                    setFio2((c) =>
+                      clamp(Number((c - 0.01).toFixed(2)), 0.21, 1.0),
+                    )
+                  }
                   style={{
                     width: "28px",
                     height: "28px",
@@ -331,7 +396,11 @@ export default function AGTutor() {
 
                 <button
                   type="button"
-                  onClick={() => setFio2((c) => clamp(Number((c + 0.01).toFixed(2)), 0.21, 1.0))}
+                  onClick={() =>
+                    setFio2((c) =>
+                      clamp(Number((c + 0.01).toFixed(2)), 0.21, 1.0),
+                    )
+                  }
                   style={{
                     width: "28px",
                     height: "28px",
@@ -356,20 +425,54 @@ export default function AGTutor() {
                 step="0.01"
                 value={fio2}
                 onChange={(e) => setFio2(Number(e.target.value))}
-                style={{ width: "88%", maxWidth: "100px", accentColor: "#6b7280" }}
+                style={{
+                  width: "88%",
+                  maxWidth: "100px",
+                  accentColor: "#6b7280",
+                }}
               />
             </div>
           </div>
 
           <div style={{ flex: 1 }} />
 
-          <p style={{ fontSize: "0.56rem", color: "#b0b8c8", marginTop: "6px" }}>
+          <p
+            style={{ fontSize: "0.56rem", color: "#b0b8c8", marginTop: "6px" }}
+          >
             V&#775;CO&#8322;=200ml/min &middot; P&#7742;=760mmHg &middot; R=0.8
           </p>
         </div>
 
         <div className="ag-right">
-          <div style={{ position: "relative", width: "100%", flex: 1, minHeight: 0 }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
+            <div
+              onClick={() => {
+                window.location.href =
+                  "https://abg.leadows.com/tutor-about/";
+              }}
+              style={{
+                position: "absolute",
+                right: 16,
+                top: 10,
+                cursor: "pointer",
+                zIndex: 20,
+                background: "rgba(255,255,255,0.9)",
+                borderRadius: "50%",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
+            </div>
             <img
               src="https://abg.leadows.com/wp-content/uploads/2026/04/ChatGPT-Image-Apr-24-2026-04_19_33-PM-1.png"
               alt="Lung illustration"
@@ -398,7 +501,10 @@ export default function AGTutor() {
                 zIndex: 5,
               }}
             >
-              <ValueBadge title="PAO&#8322;" value={fmt(model.alveolarOxygen)} />
+              <ValueBadge
+                title="PAO&#8322;"
+                value={fmt(model.alveolarOxygen)}
+              />
               <ValueBadge title="PACO&#8322;" value={fmt(model.paco2)} />
             </div>
 
@@ -438,7 +544,9 @@ export default function AGTutor() {
                 }}
               >
                 <span>PaO&#8322;</span>
-                <span style={{ fontWeight: "600", color: "#111" }}>{fmt(model.pao2)}</span>
+                <span style={{ fontWeight: "600", color: "#111" }}>
+                  {fmt(model.pao2)}
+                </span>
               </div>
 
               <div
@@ -451,7 +559,9 @@ export default function AGTutor() {
                 }}
               >
                 <span>PaCO&#8322;</span>
-                <span style={{ fontWeight: "600", color: "#111" }}>{fmt(model.paco2)}</span>
+                <span style={{ fontWeight: "600", color: "#111" }}>
+                  {fmt(model.paco2)}
+                </span>
               </div>
             </div>
 
@@ -465,7 +575,14 @@ export default function AGTutor() {
                 zIndex: 5,
               }}
             >
-              <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#1a202c", marginBottom: "5px" }}>
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: "700",
+                  color: "#1a202c",
+                  marginBottom: "5px",
+                }}
+              >
                 Alveolar-arterial gradient
               </p>
 
@@ -551,8 +668,16 @@ export default function AGTutor() {
                 {fmt(model.aaGradient)}
               </div>
 
-              <p style={{ marginTop: "6px", fontSize: "0.62rem", color: "#2d3748", fontWeight: "500" }}>
-                V&#775;A {fmt(model.alveolarVentilationL, 2)} L/min &middot; {model.ventilationState}
+              <p
+                style={{
+                  marginTop: "6px",
+                  fontSize: "0.62rem",
+                  color: "#2d3748",
+                  fontWeight: "500",
+                }}
+              >
+                V&#775;A {fmt(model.alveolarVentilationL, 2)} L/min &middot;{" "}
+                {model.ventilationState}
               </p>
 
               {model.warning && (
