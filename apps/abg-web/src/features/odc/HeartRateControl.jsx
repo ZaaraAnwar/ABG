@@ -35,7 +35,7 @@ export default function HeartRateControl({ heartRate, setHeartRate, heartDuratio
         Heart Rate
       </span>
 
-      <button onClick={() => setHeartRate((h) => Math.max(30, h - 1))}>−</button>
+      <button onClick={() => setHeartRate((h) => Math.max(30, h - 10))}>−</button>
 
       <input
         type="number"
@@ -52,7 +52,7 @@ export default function HeartRateControl({ heartRate, setHeartRate, heartDuratio
         }}
       />
 
-      <button onClick={() => setHeartRate((h) => Math.min(300, h + 1))}>+</button>
+      <button onClick={() => setHeartRate((h) => Math.min(300, h + 10))}>+</button>
     </div>
   );
 }

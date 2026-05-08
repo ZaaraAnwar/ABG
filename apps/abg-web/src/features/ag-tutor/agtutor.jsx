@@ -127,10 +127,10 @@ function GaugeControl({
 
       <p
         style={{
-          margin: "1px 0 0 0",
+          margin: "8px 0 0 0",
           textAlign: "center",
-          fontSize: "0.82rem",
-          fontWeight: "700",
+          fontSize: "1.25rem",
+          fontWeight: "800",
           color,
         }}
       >
@@ -190,6 +190,7 @@ export default function AGTutor() {
   const [deadSpace, setDeadSpace] = useState(150);
   const [tidalVolume, setTidalVolume] = useState(500);
   const [fio2, setFio2] = useState(0.21);
+  const [aaGradientInput, setAaGradientInput] = useState("5");
 
   const model = useMemo(() => {
     const effectiveBreath = tidalVolume - deadSpace;
@@ -202,10 +203,11 @@ export default function AGTutor() {
     const alveolarOxygen =
       paco2 === null ? null : fio2 * (760 - 47) - paco2 / 0.8;
 
-    const pao2 = alveolarOxygen === null ? null : alveolarOxygen - 5;
+    const aaGradNum = aaGradientInput === "" ? 0 : Number(aaGradientInput);
 
-    const aaGradient =
-      alveolarOxygen === null || pao2 === null ? null : alveolarOxygen - pao2;
+    const pao2 = alveolarOxygen === null ? null : alveolarOxygen - aaGradNum;
+
+    const aaGradient = aaGradNum;
 
     const ventilationState = !isVentilating
       ? "No effective alveolar ventilation"
@@ -231,7 +233,7 @@ export default function AGTutor() {
       ventilationState,
       warning,
     };
-  }, [deadSpace, fio2, frequency, tidalVolume]);
+  }, [deadSpace, fio2, frequency, tidalVolume, aaGradientInput]);
 
   const fmt = (value, digits = 0) => {
     if (value === null || !Number.isFinite(value)) return "\u2014";
@@ -283,8 +285,17 @@ export default function AGTutor() {
       `}</style>
 
       <div className="ag-root">
-        <div className="ag-left">
-          <div className="gauge-grid">
+        <div
+          className="ag-left"
+          style={{
+            justifyContent: "space-evenly",
+            padding: "2rem",
+          }}
+        >
+          <div
+            className="gauge-grid"
+            style={{ rowGap: "4rem", columnGap: "1rem" }}
+          >
             <GaugeControl
               label="Frequency"
               unit="breaths/min"
@@ -308,11 +319,7 @@ export default function AGTutor() {
               marks={[0, 250, 500, 750, 1000]}
               onChange={setDeadSpace}
             />
-          </div>
 
-          <div style={{ borderTop: "1px solid #ebebeb", margin: "8px 0" }} />
-
-          <div className="gauge-grid" style={{ alignItems: "center" }}>
             <GaugeControl
               label="Tidal Volume"
               unit="ml/breath"
@@ -331,28 +338,28 @@ export default function AGTutor() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px",
-                paddingBottom: "16px",
+                gap: "1rem",
               }}
             >
               <span
                 style={{
-                  fontSize: "1rem",
-                  fontWeight: "700",
-                  color: "#111827",
+                  fontSize: "1.5rem",
+                  fontWeight: "800",
+                  color: "#000",
                 }}
               >
-                FiO&#8322;
+                FiO<sub>2</sub>
               </span>
 
               <div
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  border: "1.5px solid #d1d5db",
+                  border: "2px solid #d1d5db",
                   borderRadius: "999px",
-                  background: "#f9fafb",
+                  background: "#fff",
                   overflow: "hidden",
+                  height: "40px",
                 }}
               >
                 <button
@@ -363,12 +370,13 @@ export default function AGTutor() {
                     )
                   }
                   style={{
-                    width: "28px",
-                    height: "28px",
+                    width: "44px",
+                    height: "100%",
                     border: "none",
-                    background: "transparent",
-                    fontSize: "1.1rem",
-                    color: "#6b7280",
+                    borderRight: "2px solid #d1d5db",
+                    background: "#f9fafb",
+                    fontSize: "1.25rem",
+                    color: "#9ca3af",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -380,14 +388,11 @@ export default function AGTutor() {
 
                 <div
                   style={{
-                    borderLeft: "1.5px solid #d1d5db",
-                    borderRight: "1.5px solid #d1d5db",
-                    background: "#fff",
-                    padding: "2px 10px",
-                    fontSize: "0.9rem",
+                    padding: "0 16px",
+                    fontSize: "1.125rem",
                     fontWeight: "600",
                     color: "#374151",
-                    minWidth: "50px",
+                    minWidth: "64px",
                     textAlign: "center",
                   }}
                 >
@@ -402,12 +407,13 @@ export default function AGTutor() {
                     )
                   }
                   style={{
-                    width: "28px",
-                    height: "28px",
+                    width: "44px",
+                    height: "100%",
                     border: "none",
-                    background: "transparent",
-                    fontSize: "1.1rem",
-                    color: "#6b7280",
+                    borderLeft: "2px solid #d1d5db",
+                    background: "#f9fafb",
+                    fontSize: "1.25rem",
+                    color: "#9ca3af",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -417,27 +423,17 @@ export default function AGTutor() {
                   +
                 </button>
               </div>
-
-              <input
-                type="range"
-                min="0.21"
-                max="1"
-                step="0.01"
-                value={fio2}
-                onChange={(e) => setFio2(Number(e.target.value))}
-                style={{
-                  width: "88%",
-                  maxWidth: "100px",
-                  accentColor: "#6b7280",
-                }}
-              />
             </div>
           </div>
 
-          <div style={{ flex: 1 }} />
-
           <p
-            style={{ fontSize: "0.56rem", color: "#b0b8c8", marginTop: "6px" }}
+            style={{
+              fontSize: "0.6rem",
+              color: "#b0b8c8",
+              textAlign: "center",
+              marginTop: "auto",
+              paddingTop: "1rem",
+            }}
           >
             V&#775;CO&#8322;=200ml/min &middot; P&#7742;=760mmHg &middot; R=0.8
           </p>
@@ -454,8 +450,7 @@ export default function AGTutor() {
           >
             <div
               onClick={() => {
-                window.location.href =
-                  "https://abg.leadows.com/tutor-about/";
+                window.location.href = "https://abg.leadows.com/tutor-about/";
               }}
               style={{
                 position: "absolute",
@@ -568,7 +563,7 @@ export default function AGTutor() {
             <div
               style={{
                 position: "absolute",
-                bottom: 0,
+                bottom: 200,
                 left: 0,
                 width: "100%",
                 padding: "10px 12px 12px 12px",
@@ -581,6 +576,7 @@ export default function AGTutor() {
                   fontWeight: "700",
                   color: "#1a202c",
                   marginBottom: "5px",
+                  textAlign: "left",
                 }}
               >
                 Alveolar-arterial gradient
@@ -658,14 +654,38 @@ export default function AGTutor() {
                   background: "#fff",
                   border: "1px solid #c8d0dc",
                   borderRadius: "3px",
-                  padding: "3px 7px",
-                  fontSize: "0.88rem",
-                  fontWeight: "600",
-                  color: "#111",
                   maxWidth: "200px",
+                  overflow: "hidden",
                 }}
               >
-                {fmt(model.aaGradient)}
+                <input
+                  type="number"
+                  min="0"
+                  max="750"
+                  value={aaGradientInput}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val === "") {
+                      setAaGradientInput("");
+                      return;
+                    }
+                    let num = Number(val);
+                    if (num > 750) num = 750;
+                    if (num < 0) num = 0;
+                    setAaGradientInput(num.toString());
+                  }}
+                  style={{
+                    width: "100%",
+                    border: "none",
+                    background: "transparent",
+                    padding: "3px 7px",
+                    fontSize: "0.88rem",
+                    fontWeight: "600",
+                    color: "#111",
+                    textAlign: "center",
+                    outline: "none",
+                  }}
+                />
               </div>
 
               <p
@@ -702,3 +722,4 @@ export default function AGTutor() {
     </>
   );
 }
+ 
