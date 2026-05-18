@@ -729,7 +729,7 @@ function OdcCanvas({
 // ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
-export default function OxygenDissociationCurve() {
+export default function App() {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
   const [heartRate, setHeartRate] = useState(60);
@@ -861,8 +861,49 @@ export default function OxygenDissociationCurve() {
               contentO2={contentO2}
               do2={do2}
             />
-            
-            
+            {/* STATS BOX */}
+            <div
+              style={{
+                background: "#fff",
+                border: "2px solid #ddd6f0",
+                borderRadius: 10,
+                padding: "10px 16px",
+                display: "flex",
+                gap: 20,
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                ["Active PO₂", `${activePO2.toFixed(1)} mmHg`],
+                ["Hb Saturation", `${activeSat.toFixed(1)}%`],
+                ["P50", `${p50} mmHg`],
+                ["Cardiac Output", `${cardiacOutput.toFixed(2)} L/min`],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: "#9b6bbf",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.07em",
+                    }}
+                  >
+                    {label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: "#3d2060",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

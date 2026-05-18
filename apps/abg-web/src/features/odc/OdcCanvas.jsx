@@ -10,7 +10,7 @@ import {
   P50_LEFT,
   P50_RIGHT,
 } from "./constants";
-import { hillSat, po2ToX, satToY, xToPo2 } from "./odcMath";
+import { hillSat, lookupSatNormal, po2ToX, satToY, xToPo2 } from "./odcMath";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(() =>
@@ -26,6 +26,7 @@ function useWindowWidth() {
 
 export default function OdcCanvas({
   activePO2,
+  activeSat,
   p50,
   shiftDir,
   heartRate,
@@ -44,7 +45,7 @@ export default function OdcCanvas({
   const [hoverPO2, setHoverPO2] = useState(null);
 
   const draw = useCallback(
-    (hoverVal = null) => {
+    (hoverVal = null, currentActiveSat = activeSat) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -118,13 +119,15 @@ export default function OdcCanvas({
       ctx.fillText("Venous Blood", PAD_L + CW * 0.2, PAD_T + CH + 32);
       ctx.fillText("Arterial End", PAD_L + CW * 0.82, PAD_T + CH + 32);
 
-      const drawCurve = (p50Value, color, lineWidth, alpha = 1) => {
+      const drawCurve = (p50Value, color, lineWidth, alpha = 1, useTable = false) => {
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.beginPath();
 
         for (let p = 0; p <= 100; p += 0.5) {
-          const s = hillSat(p, p50Value);
+          // For the normal (unshifted) curve, use the clinical lookup table so the
+          // curve shape matches the saturation values shown in the results panel.
+          const s = useTable ? lookupSatNormal(p) : hillSat(p, p50Value);
           if (p === 0) {
             ctx.moveTo(po2ToX(p), satToY(s));
           } else {
@@ -139,7 +142,8 @@ export default function OdcCanvas({
         ctx.restore();
       };
 
-      drawCurve(P50_NORMAL, "#cc0000", 3);
+      // Normal curve: draw with clinical lookup table values
+      drawCurve(P50_NORMAL, "#cc0000", 3, 1, true);
 
       if (shiftDir === "left") {
         drawCurve(P50_LEFT, "#2a6ab0", 2.5, 0.85);
@@ -181,9 +185,10 @@ export default function OdcCanvas({
         ctx.fill();
       }
 
-      const activeSat = hillSat(activePO2, p50);
+      // Use the saturation value passed from the parent (clinical lookup table for
+      // normal curve, Hill equation for shifted curves) — keeps dot and panel in sync.
       const dotX = po2ToX(activePO2);
-      const dotY = satToY(activeSat);
+      const dotY = satToY(currentActiveSat);
 
       ctx.setLineDash([4, 4]);
       ctx.strokeStyle = "rgba(70,30,110,0.6)";
@@ -235,12 +240,12 @@ export default function OdcCanvas({
         ctx.fillText("(heart rate)", tx, ty + 42);
       }
     },
-    [activePO2, p50, shiftDir, isDragging, heartRate],
+    [activePO2, activeSat, p50, shiftDir, isDragging, heartRate],
   );
 
   useEffect(() => {
-    draw(hoverPO2);
-  }, [draw, hoverPO2]);
+    draw(hoverPO2, activeSat);
+  }, [draw, hoverPO2, activeSat]);
 
   const readPointer = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();

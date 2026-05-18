@@ -48,7 +48,7 @@ export default function ResultsPanel({
           </div>
 
           <div style={gridStyle}>
-            <div style={redCell(cellFontSize, cellPadding)}>{activeSat.toFixed(0)}%</div>
+            <div style={redCell(cellFontSize, cellPadding)}>{Math.round(activeSat)}%</div>
 
             <div style={purpleCell(cellFontSize, cellPadding)}>
               <button style={inlineBtnStyle} onClick={() => stepPO2(-1)}>−</button>
@@ -75,7 +75,7 @@ export default function ResultsPanel({
           </div>
 
           <div style={gridStyle}>
-            <div style={redCell(cellFontSize, cellPadding)}>{activeSat.toFixed(0)}%</div>
+            <div style={redCell(cellFontSize, cellPadding)}>{Math.round(activeSat)}%</div>
 
             <div style={purpleCell(cellFontSize, cellPadding)}>
               <button
