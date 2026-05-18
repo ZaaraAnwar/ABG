@@ -604,9 +604,6 @@ export default function ABGTutor() {
                 <div
                   onClick={() => (window.location.href = flowUrl)}
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
                     width: 48,
                     height: 48,
                     borderRadius: "50%",
@@ -617,7 +614,7 @@ export default function ABGTutor() {
                     color: "#a00",
                     cursor: "pointer",
                     background: "#fff",
-                    zIndex: 10,
+                    marginBottom: 8,
                   }}
                   title={
                     isAcidic ? "Acidosis Flowchart" : "Alkalosis Flowchart"

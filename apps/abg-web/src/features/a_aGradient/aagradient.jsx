@@ -964,7 +964,7 @@ function Aagradient() {
   const calculatedPAO2 = (fiO2 / 100) * (760 - 47) - paCO2 / 0.8;
 
   const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
   );
 
   useEffect(() => {
@@ -990,10 +990,10 @@ function Aagradient() {
       setHistoryData(getHistory());
     }
   }, [view]);
-
-  const calcAaGradient = () => ((fiO2 / 100) * (760 - 47) - paO2).toFixed(2);
+  const calcAaGradient = () =>
+    ((fiO2 / 100) * (760 - 47) - paCO2 / 0.8 - paO2).toFixed(2);
   const calcPao2Fio2 = () => (paO2 / (fiO2 / 100)).toFixed(2);
-
+ 
   const handleAddSubmit = () => {
     if (!patientIdInput.trim() || !patientNameInput.trim()) {
       alert("Please enter both Patient ID and Name.");
@@ -1009,7 +1009,7 @@ function Aagradient() {
     const success = addPatientRecord(
       patientIdInput,
       patientNameInput,
-      currentResult
+      currentResult,
     );
     if (!success) {
       alert("Patient ID already exists. Use Update instead.");

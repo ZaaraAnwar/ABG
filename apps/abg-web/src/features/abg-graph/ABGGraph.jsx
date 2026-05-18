@@ -19,7 +19,9 @@ const PH_MIN = 6.8;
 const PH_MAX = 7.85;
 const NORMAL_PH = 7.4;
 
-const Y_TICKS = [0, 30, 60, 90, 120, 150];
+const MMHG_PER_KPA = 7.50062;
+const Y_TICKS_MMHG = [0, 30, 60, 90, 120, 150];
+const Y_TICKS_KPA = [0, 4, 8, 12, 16, 20];
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -219,7 +221,17 @@ export default function ABGGraph() {
 
   const paco2ForDiagnosis = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
   const paco2ForPlot = paco2;
+  const isKpa = unit === "kPa";
 
+  const yTicks = isKpa ? Y_TICKS_KPA : Y_TICKS_MMHG;
+
+  const displayY = (mmHgValue) =>
+    isKpa ? mmHgValue / MMHG_PER_KPA : mmHgValue;
+
+  const mapDisplayY = (displayValue) => {
+    const mmHgValue = isKpa ? displayValue * MMHG_PER_KPA : displayValue;
+    return mapY(mmHgValue);
+  };
   const title = useMemo(
     () => interpret(ph, paco2ForDiagnosis),
     [ph, paco2ForDiagnosis],
@@ -369,27 +381,27 @@ export default function ABGGraph() {
             transform={`rotate(-90, -38, ${SVG_H / 2})`}
             fontFamily="'Segoe UI', system-ui, sans-serif"
           >
-            PaCO₂ (mmHg)
+            {`PaCO₂ (${unit})`}
           </text>
           {/* Y-axis grid */}
-          {Y_TICKS.map((val) => (
+          {yTicks.map((val) => (
             <g key={`gy-${val}`}>
               <line
                 x1="0"
                 x2={SVG_W}
-                y1={mapY(val)}
-                y2={mapY(val)}
+                y1={mapDisplayY(val)}
+                y2={mapDisplayY(val)}
                 stroke="#eee"
                 strokeWidth="1"
               />
               <text
                 x="-10"
-                y={mapY(val) + 5}
+                y={mapDisplayY(val) + 5}
                 fontSize="14"
                 fill="#888"
                 textAnchor="end"
               >
-                {val}
+                {isKpa ? val.toFixed(0) : val}
               </text>
             </g>
           ))}
