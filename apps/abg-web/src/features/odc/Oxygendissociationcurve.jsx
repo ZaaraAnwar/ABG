@@ -1,5 +1,6 @@
+​
 import { useState, useCallback, useEffect, useRef } from "react";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+// import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -42,39 +43,107 @@ const hillSat = (po2, p50 = P50_NORMAL) =>
       100;
 
 const getP50 = (shiftDir) =>
-  shiftDir === "left" ? P50_LEFT : shiftDir === "right" ? P50_RIGHT : P50_NORMAL;
+  shiftDir === "left"
+    ? P50_LEFT
+    : shiftDir === "right"
+      ? P50_RIGHT
+      : P50_NORMAL;
 
 // Clinically-accurate lookup table for the normal (unshifted) ODC curve
 const NORMAL_SAT_TABLE = [
-  [0,    -1     ],
-  [2,    -1     ],
-  [3,    0      ],
-  [4,    0      ],
-  [5,    1      ],
-  [6,    3      ],
-  [7,    5      ],
-  [8,    7      ],
-  [9,    9      ],
-  [10,   10     ],
-  [20,   36.1041],
-  [21,   39.0   ],
-  [22,   41.0677],
-  [23,   44.1442],
-  [24,   46.1799],
-  [25,   48.2156],
-  [26,   50.1026],
-  [60,   90     ],
-  [61,   92     ],
-  [65,   93     ],
-  [67,   94     ],
-  [70,   94     ],
-  [71,   95     ],
-  [76,   95     ],
-  [77,   96     ],
-  [88,   97     ],
-  [100,  97     ],
-  [150,  98.8   ],
-  [500,  100    ],
+  [0, -1],
+  [2, -1],
+  [3, 0],
+  [4, 0],
+  [5, 1],
+  [6, 3],
+  [7, 5],
+  [8, 7],
+  [9, 9],
+  [10, 10],
+  [20, 36.1041],
+  [21, 39.0],
+  [22, 41.0677],
+  [23, 44.1442],
+  [24, 46.1799],
+  [25, 48.2156],
+  [26, 50.1026],
+  [27, 53.0],
+  [28, 55.0],
+  [29, 57.0],
+  [30, 59.0],
+  [31, 61.0],
+  [32, 63.0],
+  [33, 64.0],
+  [34, 66.0],
+  [35, 68.0],
+  [36, 70.0],
+  [37, 71.0],
+  [38, 73.0],
+  [39, 74.0],
+  [40, 76.0],
+  [41, 77.0],
+  [42, 78.0],
+  [43, 79.0],
+  [44, 80.0],
+  [45, 81.0],
+  [46, 82.0],
+  [47, 83.0],
+  [48, 84.0],
+  [49, 85.0],
+  [50, 86.0],
+  [51, 87.0],
+  [52, 87.0],
+  [53, 88.0],
+  [54, 89.0],
+  [55, 89.0],
+  [56, 90.0],
+  [57, 90.0],
+  [58, 91.0],
+  [59, 91.0],
+  [60, 91.0],
+  [61, 92.0],
+  [62, 92.0],
+  [63, 93.0],
+  [64, 93.0],
+  [65, 93.0],
+  [66, 93.0],
+  [67, 94.0],
+  [68, 94.0],
+  [69, 94.0],
+  [70, 94.0],
+  [71, 95.0],
+  [72, 95.0],
+  [73, 95.0],
+  [74, 95.0],
+  [75, 95.0],
+  [76, 95.0],
+  [77, 96.0],
+  [78, 96.0],
+  [79, 96.0],
+  [80, 96.0],
+  [81, 96.0],
+  [82, 96.0],
+  [83, 96.0],
+  [84, 96.0],
+  [85, 96.0],
+  [86, 97.0],
+  [87, 97.0],
+  [88, 97.0],
+  [89, 97.0],
+  [90, 97.0],
+  [91, 97.0],
+  [92, 97.0],
+  [93, 97.0],
+  [94, 97.0],
+  [95, 97.0],
+  [96, 97.0],
+  [97, 97.0],
+  [98, 97.0],
+  [99, 97.0],
+  [100, 97.0],
+  [150, 98.8],
+  [500, 100],
 ];
 
 function lookupSatNormal(po2) {
@@ -104,7 +173,7 @@ const xToPo2 = (cx) => Math.max(0, Math.min(100, ((cx - PAD_L) / CW) * 100));
 
 function useWindowWidth() {
   const [width, setWidth] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth : 800
+    typeof window !== "undefined" ? window.innerWidth : 800,
   );
   useEffect(() => {
     const onResize = () => setWidth(window.innerWidth);
@@ -164,7 +233,9 @@ function HeartRateControl({ heartRate, setHeartRate }) {
       >
         Heart Rate
       </span>
-      <button onClick={() => setHeartRate((h) => Math.max(30, h - 10))}>−</button>
+      <button onClick={() => setHeartRate((h) => Math.max(30, h - 10))}>
+        −
+      </button>
       <input
         type="number"
         value={heartRate}
@@ -179,7 +250,9 @@ function HeartRateControl({ heartRate, setHeartRate }) {
           textAlign: "center",
         }}
       />
-      <button onClick={() => setHeartRate((h) => Math.min(300, h + 10))}>+</button>
+      <button onClick={() => setHeartRate((h) => Math.min(300, h + 10))}>
+        +
+      </button>
     </div>
   );
 }
@@ -295,20 +368,40 @@ function ResultsPanel({
         <>
           <div style={gridStyle}>
             <div style={cellHeader(isMobile)}>Hb Saturation</div>
-            <div style={cellHeader(isMobile)}>PaO₂</div>
-            <div style={cellHeader(isMobile)}>Hb(g/dl)</div>
+            <div style={cellHeader(isMobile)}>PO₂ (mmHg)</div>
+            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>Enter Hb(g/dl)</div>
           </div>
           <div style={gridStyle}>
-            <div style={redCell(cellFontSize, cellPadding)}>{activeSat.toFixed(0)}%</div>
+            <div style={redCell(cellFontSize, cellPadding)}>
+              {activeSat.toFixed(0)}%
+            </div>
             <div style={purpleCell(cellFontSize, cellPadding)}>
-              <button style={inlineBtnStyle} onClick={() => stepPO2(-1)}>−</button>
-              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>{Math.round(activePO2)}</span>
-              <button style={inlineBtnStyle} onClick={() => stepPO2(1)}>+</button>
+              <button style={inlineBtnStyle} onClick={() => stepPO2(-1)}>
+                −
+              </button>
+              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>
+                {Math.round(activePO2)}
+              </span>
+              <button style={inlineBtnStyle} onClick={() => stepPO2(1)}>
+                +
+              </button>
             </div>
             <div style={redCell(cellFontSize, cellPadding)}>
-              <button style={inlineBtnStyle} onClick={() => setHb((h) => Math.max(1, h - 1))}>−</button>
-              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>{hb}</span>
-              <button style={inlineBtnStyle} onClick={() => setHb((h) => Math.min(25, h + 1))}>+</button>
+              <button
+                style={inlineBtnStyle}
+                onClick={() => setHb((h) => Math.max(1, h - 1))}
+              >
+                −
+              </button>
+              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>
+                {hb}
+              </span>
+              <button
+                style={inlineBtnStyle}
+                onClick={() => setHb((h) => Math.min(25, h + 1))}
+              >
+                +
+              </button>
             </div>
           </div>
           <div style={resultLabel}>Content of O₂</div>
@@ -319,10 +412,12 @@ function ResultsPanel({
           <div style={gridStyle}>
             <div style={cellHeader(isMobile)}>Hb Saturation</div>
             <div style={cellHeader(isMobile)}>Stroke Vol</div>
-            <div style={cellHeader(isMobile)}>Hb(g/dl)</div>
+            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>Enter Hb(g/dl)</div>
           </div>
           <div style={gridStyle}>
-            <div style={redCell(cellFontSize, cellPadding)}>{activeSat.toFixed(0)}%</div>
+            <div style={redCell(cellFontSize, cellPadding)}>
+              {activeSat.toFixed(0)}%
+            </div>
             <div style={purpleCell(cellFontSize, cellPadding)}>
               <button
                 style={inlineBtnStyle}
@@ -330,7 +425,9 @@ function ResultsPanel({
               >
                 −
               </button>
-              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>{strokeVolume}</span>
+              <span style={{ margin: isMobile ? "0 6px" : "0 12px" }}>
+                {strokeVolume}
+              </span>
               <button
                 style={inlineBtnStyle}
                 onClick={() => setStrokeVolume((v) => Math.min(200, v + 1))}
@@ -684,13 +781,13 @@ function OdcCanvas({
       >
         →
       </button>
-      {probePos && (
-        <ProbeTooltip probePos={probePos} />
-      )}
+      {probePos && <ProbeTooltip probePos={probePos} />}
     </div>
   );
   const po2Label = (
-    <div style={{ textAlign: "center", marginTop: 4, fontSize: 13, color: "#555" }}>
+    <div
+      style={{ textAlign: "center", marginTop: 4, fontSize: 13, color: "#555" }}
+    >
       PO<sub>2</sub> (mmHg)
     </div>
   );
@@ -729,9 +826,10 @@ function OdcCanvas({
 // ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
-export default function OxygenDissociationCurve() {
+export default function App() {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
+  const [showInfo, setShowInfo] = useState(false);
   const [heartRate, setHeartRate] = useState(60);
   const [hb, setHb] = useState(5);
   const [strokeVolume, setStrokeVolume] = useState(90);
@@ -744,15 +842,17 @@ export default function OxygenDissociationCurve() {
   const arterialSat = hillSat(arterialPO2, p50);
   const activePO2 = interactivePO2 !== null ? interactivePO2 : baseVenousPO2;
   const activeSat = getCorrectedSaturation(activePO2, shiftDir, p50);
+  const displaySat = Math.round(activeSat);
+
   // CaO₂ (ml O₂ per 100 ml blood)
-  // = (1.34 × Hb × SaO₂%) + (0.0031 × PO₂)
-  // 1.34 = Hüfner's constant (standard clinical value)
-  const contentO2Raw = (1.34 * hb * activeSat) / 100 + (0.0031 * activePO2);
+  // = (1.35 × Hb × SaO₂%) + (0.0031 × PO₂)
+  // 1.35 = Hüfner's constant used in reference app
+  const contentO2Raw = (1.35 * hb * displaySat) / 100 + 0.0031 * activePO2;
   const contentO2 = contentO2Raw.toFixed(2);
   // Cardiac Output (L/min) = HR × SV (ml) / 1000
   const cardiacOutput = (heartRate * strokeVolume) / 1000;
-  // DO₂ (ml O₂/min) = CO (L/min) × CaO₂ (ml/dL) × 10 (dL→L conversion)
-  const do2 = (cardiacOutput * contentO2Raw * 10).toFixed(2);
+  // DO₂ (ml O₂/min) = CaO2 * (HR * SV) / 100
+  const do2 = ((Number(contentO2) * heartRate * strokeVolume) / 100).toFixed(2);
   const toggleShift = useCallback((dir) => {
     setShiftDir((prev) => (prev === dir ? "none" : dir));
     setInteractivePO2(20);
@@ -771,7 +871,6 @@ export default function OxygenDissociationCurve() {
       style={{
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        padding: isMobile ? "12px 8px" : "24px",
         width: "100%",
         maxWidth: "100%",
         margin: 0,
@@ -780,30 +879,164 @@ export default function OxygenDissociationCurve() {
         position: "relative",
       }}
     >
+      {/* Header */}
       <div
-        onClick={() => {
-          window.location.href = "https://abg.leadows.com/about-odc/";
-        }}
         style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          cursor: "pointer",
-          zIndex: 10,
+          background: "#6d3596",
+          color: "#fff",
+          padding: "16px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+          marginBottom: "20px"
         }}
       >
-        <InfoOutlinedIcon
+       
+        <div
+          onClick={() => setShowInfo(true)}
           style={{
-            fontSize: 26,
-            color: "#6b4fa0",
+            position: "absolute",
+            right: 20,
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            border: "2px solid #fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            fontSize: 18,
+            fontWeight: "bold",
+            background: "rgba(255,255,255,0.1)"
           }}
-        />
+        >
+          i
+        </div>
       </div>
+
+      {showInfo && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20
+          }}
+          onClick={() => setShowInfo(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 600,
+              maxHeight: "80vh",
+              overflowY: "auto",
+              position: "relative",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowInfo(false)}
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                background: "none",
+                border: "none",
+                fontSize: 24,
+                cursor: "pointer",
+                color: "#666"
+              }}
+            > 
+              &times;
+            </button>
+            <h2 style={{ color: "#6d3596", marginTop: 0 }}>About</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              ODC represents partial pressure of oxygen on horizontal axis and saturation of hemoglobin on vertical axis. The normal sigmoid curve can be shifted to right or left on the app, which indicates the decreased and increased affinity of hemoglobin to oxygen respectively.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              As the curve shifts the app displays the causes for the shift. App shows the fall in saturation of hemoglobin as the blood moves from the arterial to venous end and the oscillating cursor indicates the heart rate which can be changed.
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              Application also displays the arterial and venous saturation. P50 value denotes the partial pressure of oxygen at which hemoglobin is 50% saturated (marked in the application). Partial pressure of 60 roughly corresponds with Hb saturation of 90 and marks an important point (ICU Point) on ODC, as from here for a small drop in pressure, the drop in saturation is rapid. At partial pressure of around 500 hemoglobin is 100% saturation.
+            </p>
+            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Some important points to remember:</h3>
+            <ul style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              <li>PaO₂ 0 mm Hg. SaO₂ 0%</li>
+              <li>PaO₂ 10 mm Hg. SaO₂ 10%</li>
+              <li>PaO₂ approx. 25 mm Hg. SaO₂ 50% (P50 value)</li>
+              <li>PaO₂ 60 mm Hg. SaO₂ 90% (the ICU point)</li>
+              <li>PaO₂ 150 mm Hg. SaO₂ 98.8% shows flat upper part of ODC</li>
+              <li>PaO₂ 500 mm Hg. SaO₂ 100%</li>
+            </ul>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              Oxygen delivery (DO₂) can also be calculated in this app.
+              <br/><br/>
+              This app DO₂ largely depends on three parameters:
+              <br/>1. Hemoglobin concentration
+              <br/>2. Saturation (SaO₂)
+              <br/>3. Cardiac Output (heart rate × stroke volume)
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              In this app ENTER stroke volume in ml. and with values of saturation, PaO₂ and Hb% already entered in the app, this app will calculate the DO₂ (ml/min).
+              <br/><br/>
+              The delivery of oxygen to the tissues per minute can be calculated as follows:
+              <br/><br/>
+              <strong>Step 1:</strong> Calculate amount of oxygen/100 ml of blood (CaO₂).
+              <br/>[(1.39 × Hb × SaO₂) / 100 + (0.003 × PaO₂)]
+              <br/><br/>
+              <strong>Step 2:</strong> Calculate the cardiac output per minute = Heart rate × Stroke volume.
+              <br/><br/>
+              <strong>Step 3:</strong> Calculate the DO₂.
+            </p>
+            <div style={{ background: "#f5f0fa", padding: 12, borderRadius: 8, fontSize: 14, color: "#333" }}>
+              <strong>For example: Consider</strong>
+              <br/>Hb% = 15%
+              <br/>SaO₂ = 100%
+              <br/>Cardiac output = 5 L/min (5000 ml/min)
+              <br/><br/>
+              Step 1: Amount of oxygen/100 ml of blood = 20.88
+              <br/>Step 2: Cardiac output/min = 5 L/min
+              <br/>Step 3: DO₂ = 20.88 × 5000 / 100 = 1044 ml of O₂/min
+              <br/><br/>
+              Delivery of oxygen = 1044 ml of O₂/min (as per this example)
+            </div>
+            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Normal Cardiac output per minute</h3>
+            <ul style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              <li>Birth: 400 ml/Kg/min</li>
+              <li>Infancy onwards: 200 ml/Kg/min</li>
+              <li>Adolescents: 100 ml/Kg/min</li>
+            </ul>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              Stroke output = min output / Heart rate
+            </p>
+            <hr style={{ border: 0, borderTop: "1px solid #eee", margin: "20px 0" }} />
+            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Team Behind the App:</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
+              The ODC app was developed by a team of medical professionals, including Dr. Satish Deopujari, a Professor Emeritus at Govt. Medical College Nagpur IGGMC, Adjunct Professor in Mechanical Engineering at VNIT Nagpur, Chairman Academics at Nelson Hospital Nagpur, Founder Chairman of the National Pediatric Intensive chapter, and President of the Society of Pediatric Critical Care in Chandigarh.
+              <br/><br/>
+              Dr. Lawrence Martin, Dr. Vivek Shivhare, and Dr. Shruti Deopujari were also part of the development team. Their collective experience in the medical field has contributed to the development of medical education and research in India.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div
         style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: isMobile ? 0 : 20,
+          padding: isMobile ? "0 8px" : "0 20px 20px 20px",
           boxSizing: "border-box",
         }}
       >
@@ -861,8 +1094,49 @@ export default function OxygenDissociationCurve() {
               contentO2={contentO2}
               do2={do2}
             />
-            
-            
+            {/* STATS BOX */}
+            <div
+              style={{
+                background: "#fff",
+                border: "2px solid #ddd6f0",
+                borderRadius: 10,
+                padding: "10px 16px",
+                display: "flex",
+                gap: 20,
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                ["Active PO₂", `${activePO2.toFixed(1)} mmHg`],
+                ["Hb Saturation", `${activeSat.toFixed(1)}%`],
+                ["P50", `${p50} mmHg`],
+                ["Cardiac Output", `${cardiacOutput.toFixed(2)} L/min`],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: "#9b6bbf",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.07em",
+                    }}
+                  >
+                    {label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: "#3d2060",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
