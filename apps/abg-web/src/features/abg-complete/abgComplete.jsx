@@ -437,30 +437,33 @@ export default function ABGTutor() {
 
   const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
   const extTarget = useMemo(() => {
-    const d = diagnosis.secondary;
-    if (d === "Normal") return null;
+    const paco2Lo1 = unit === "kPa" ? 0.07 : kpaToMmhg(0.07);
+    const paco2Hi1 = unit === "kPa" ? 2.3 : kpaToMmhg(2.3);
+    const paco2Lo2 = unit === "kPa" ? 2.3 : kpaToMmhg(2.3);
+    const paco2Hi2 = unit === "kPa" ? 5.8 : kpaToMmhg(5.8);
+    const paco2Lo3 = unit === "kPa" ? 5.9 : kpaToMmhg(5.9);
+    const paco2Hi3 = unit === "kPa" ? 30.0 : kpaToMmhg(30.0);
 
-    // Low PaCO2 (respiratory alkalosis territory) → show Metabolic Alkalosis
-    if (paco2 < paco2Cfg.normal - 0.05) {
-      return {
-        label: "Metabolic Alkalosis",
-        url: "https://abg.leadows.com/metabolic-alkalosis/",
-      };
-    }
-
-    // High PaCO2 (respiratory acidosis territory)
-    if (d.includes("Metabolic Alkalosis")) {
-      return {
-        label: "Metabolic Alkalosis",
-        url: "https://abg.leadows.com/metabolic-alkalosis/",
-      };
-    }
-    if (d.includes("Metabolic Acidosis")) {
+    // 0.07 – 2.3 → Anion Gap
+    if (paco2 >= paco2Lo1 && paco2 <= paco2Hi1) {
       return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
     }
-    return null;
-  }, [diagnosis.secondary, paco2, paco2Cfg.normal]);
 
+    // 2.3 – 5.8 → disabled
+    if (paco2 > paco2Lo2 && paco2 <= paco2Hi2) {
+      return null;
+    }
+
+    // 5.9 – 30.0 → Metabolic Alkalosis
+    if (paco2 >= paco2Lo3 && paco2 <= paco2Hi3) {
+      return {
+        label: "Metabolic Alkalosis",
+        url: "https://abg.leadows.com/metabolic-alkalosis/",
+      };
+    }
+
+    return null;
+  }, [paco2, unit]);
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
   const flowUrl = isAcidic
