@@ -1,6 +1,6 @@
 ​
 import { useState, useCallback, useEffect, useRef } from "react";
-// import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -829,7 +829,7 @@ function OdcCanvas({
 export default function App() {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
-  const [showInfo, setShowInfo] = useState(false);
+
   const [heartRate, setHeartRate] = useState(60);
   const [hb, setHb] = useState(5);
   const [strokeVolume, setStrokeVolume] = useState(90);
@@ -879,158 +879,7 @@ export default function App() {
         position: "relative",
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          background: "#6d3596",
-          color: "#fff",
-          padding: "16px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-          marginBottom: "20px"
-        }}
-      >
-       
-        <div
-          onClick={() => setShowInfo(true)}
-          style={{
-            position: "absolute",
-            right: 20,
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            border: "2px solid #fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            fontSize: 18,
-            fontWeight: "bold",
-            background: "rgba(255,255,255,0.1)"
-          }}
-        >
-          i
-        </div>
-      </div>
 
-      {showInfo && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.6)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20
-          }}
-          onClick={() => setShowInfo(false)}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              maxWidth: 600,
-              maxHeight: "80vh",
-              overflowY: "auto",
-              position: "relative",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowInfo(false)}
-              style={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                background: "none",
-                border: "none",
-                fontSize: 24,
-                cursor: "pointer",
-                color: "#666"
-              }}
-            > 
-              &times;
-            </button>
-            <h2 style={{ color: "#6d3596", marginTop: 0 }}>About</h2>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              ODC represents partial pressure of oxygen on horizontal axis and saturation of hemoglobin on vertical axis. The normal sigmoid curve can be shifted to right or left on the app, which indicates the decreased and increased affinity of hemoglobin to oxygen respectively.
-            </p>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              As the curve shifts the app displays the causes for the shift. App shows the fall in saturation of hemoglobin as the blood moves from the arterial to venous end and the oscillating cursor indicates the heart rate which can be changed.
-            </p>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              Application also displays the arterial and venous saturation. P50 value denotes the partial pressure of oxygen at which hemoglobin is 50% saturated (marked in the application). Partial pressure of 60 roughly corresponds with Hb saturation of 90 and marks an important point (ICU Point) on ODC, as from here for a small drop in pressure, the drop in saturation is rapid. At partial pressure of around 500 hemoglobin is 100% saturation.
-            </p>
-            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Some important points to remember:</h3>
-            <ul style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              <li>PaO₂ 0 mm Hg. SaO₂ 0%</li>
-              <li>PaO₂ 10 mm Hg. SaO₂ 10%</li>
-              <li>PaO₂ approx. 25 mm Hg. SaO₂ 50% (P50 value)</li>
-              <li>PaO₂ 60 mm Hg. SaO₂ 90% (the ICU point)</li>
-              <li>PaO₂ 150 mm Hg. SaO₂ 98.8% shows flat upper part of ODC</li>
-              <li>PaO₂ 500 mm Hg. SaO₂ 100%</li>
-            </ul>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              Oxygen delivery (DO₂) can also be calculated in this app.
-              <br/><br/>
-              This app DO₂ largely depends on three parameters:
-              <br/>1. Hemoglobin concentration
-              <br/>2. Saturation (SaO₂)
-              <br/>3. Cardiac Output (heart rate × stroke volume)
-            </p>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              In this app ENTER stroke volume in ml. and with values of saturation, PaO₂ and Hb% already entered in the app, this app will calculate the DO₂ (ml/min).
-              <br/><br/>
-              The delivery of oxygen to the tissues per minute can be calculated as follows:
-              <br/><br/>
-              <strong>Step 1:</strong> Calculate amount of oxygen/100 ml of blood (CaO₂).
-              <br/>[(1.39 × Hb × SaO₂) / 100 + (0.003 × PaO₂)]
-              <br/><br/>
-              <strong>Step 2:</strong> Calculate the cardiac output per minute = Heart rate × Stroke volume.
-              <br/><br/>
-              <strong>Step 3:</strong> Calculate the DO₂.
-            </p>
-            <div style={{ background: "#f5f0fa", padding: 12, borderRadius: 8, fontSize: 14, color: "#333" }}>
-              <strong>For example: Consider</strong>
-              <br/>Hb% = 15%
-              <br/>SaO₂ = 100%
-              <br/>Cardiac output = 5 L/min (5000 ml/min)
-              <br/><br/>
-              Step 1: Amount of oxygen/100 ml of blood = 20.88
-              <br/>Step 2: Cardiac output/min = 5 L/min
-              <br/>Step 3: DO₂ = 20.88 × 5000 / 100 = 1044 ml of O₂/min
-              <br/><br/>
-              Delivery of oxygen = 1044 ml of O₂/min (as per this example)
-            </div>
-            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Normal Cardiac output per minute</h3>
-            <ul style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              <li>Birth: 400 ml/Kg/min</li>
-              <li>Infancy onwards: 200 ml/Kg/min</li>
-              <li>Adolescents: 100 ml/Kg/min</li>
-            </ul>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              Stroke output = min output / Heart rate
-            </p>
-            <hr style={{ border: 0, borderTop: "1px solid #eee", margin: "20px 0" }} />
-            <h3 style={{ color: "#6d3596", fontSize: 16 }}>Team Behind the App:</h3>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#333" }}>
-              The ODC app was developed by a team of medical professionals, including Dr. Satish Deopujari, a Professor Emeritus at Govt. Medical College Nagpur IGGMC, Adjunct Professor in Mechanical Engineering at VNIT Nagpur, Chairman Academics at Nelson Hospital Nagpur, Founder Chairman of the National Pediatric Intensive chapter, and President of the Society of Pediatric Critical Care in Chandigarh.
-              <br/><br/>
-              Dr. Lawrence Martin, Dr. Vivek Shivhare, and Dr. Shruti Deopujari were also part of the development team. Their collective experience in the medical field has contributed to the development of medical education and research in India.
-            </p>
-          </div>
-        </div>
-      )}
 
       <div
         style={{
@@ -1072,6 +921,12 @@ export default function App() {
               boxSizing: "border-box",
             }}
           >
+            <div
+              onClick={() => { window.location.href = "https://abg.leadows.com/about-odc/"; }}
+              style={{ display: "flex", justifyContent: "flex-end", cursor: "pointer" }}
+            >
+              <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
+            </div>
             <HeartRateControl
               heartRate={heartRate}
               setHeartRate={setHeartRate}

@@ -222,7 +222,7 @@ function AnimatedFormula({ stage, annotation, frozen, activeOrgan }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.38, ease: "easeInOut" }}
+            transition={{ duration: 0.58, ease: "easeInOut" }}
             style={{ width: "100%" }}
           >
             <FormulaContent stage={stage} frozen={frozen} activeOrgan={activeOrgan} />
@@ -239,7 +239,7 @@ function AnimatedFormula({ stage, annotation, frozen, activeOrgan }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               style={{
                 fontSize: 14,
                 color: "#7a5a91",
@@ -279,7 +279,7 @@ function OrganImage({ src, alt, width = 120, marginBottom = 24, marginTop = 0, i
         }
         transition={
           isActive
-            ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+            ? { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
             : { duration: 0.5, ease: "easeOut" }
         }
       >
@@ -388,67 +388,67 @@ export default function DynamicHHEquation() {
       setFormulaStage(0);
       setActiveOrgan(null);
     }, t);
-    t += 1800;
+    t += 3500;
 
     /* Step 2 — substitute pKa → 6.1 in formula */
     sched(() => {
       setAnnotation(null);
       setFormulaStage(1);
     }, t);
-    t += 1100;
+    t += 2200;
 
     /* Step 3 — H2CO3 equation annotation + lung glow */
     sched(() => {
       setAnnotation(`H₂CO₃ = ${cf} × PaCO₂`);
       setActiveOrgan("lungs");
     }, t);
-    t += 1800;
+    t += 3500;
 
     /* Step 4 — PaCO2 value annotation */
     sched(() => {
       setAnnotation(`Value for PaCO₂ is ${p.toFixed(1)} ${unit}`);
     }, t);
-    t += 1500;
+    t += 3000;
 
     /* Step 5 — substitute denominator symbols */
     sched(() => {
       setAnnotation(null);
       setFormulaStage(2);
     }, t);
-    t += 1000;
+    t += 2000;
 
     /* Step 6 — substitute PaCO2 numeric value in denominator */
     sched(() => {
       setFormulaStage(3);
     }, t);
-    t += 1200;
+    t += 2500;
 
     /* Step 7 — HCO3 value annotation + kidney glow */
     sched(() => {
       setAnnotation(`Value for HCO₃⁻ is ${h.toFixed(1)} mEq/L`);
       setActiveOrgan("kidney");
     }, t);
-    t += 1500;
+    t += 3000;
 
     /* Step 8 — substitute HCO3 numeric value in numerator */
     sched(() => {
       setAnnotation(null);
       setFormulaStage(4);
     }, t);
-    t += 1500;
+    t += 3000;
 
     /* Step 9 — show simplified log value */
     sched(() => {
       setActiveOrgan(null);
       setFormulaStage(5);
     }, t);
-    t += 2000;
+    t += 3500;
 
     /* Step 10 — show final pH result */
     sched(() => {
       setFormulaStage(6);
     }, t);
-    t += 2500;
+    t += 4000;
 
     /* Step 11 — reset to idle */
     sched(() => {

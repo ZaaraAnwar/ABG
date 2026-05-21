@@ -386,8 +386,8 @@ export default function AcuteChronic() {
           style={{
             marginTop: 22,
             textAlign: "center",
-            fontSize: 12,
-            color: "#444",
+            fontSize: 15,
+            color: "#000",
             lineHeight: 1.35,
             padding: "0 8px",
           }}

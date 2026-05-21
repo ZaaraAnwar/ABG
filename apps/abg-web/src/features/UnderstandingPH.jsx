@@ -20,10 +20,30 @@ const NORMAL_PH = 7.4;
 export default function UnderstandingPH() {
   const { unit } = usePressureUnit();
   const [ph, setPh] = useState(NORMAL_PH);
-  const h = phToH(ph);
+  const h = Math.round(phToH(ph));
 
   const handlePhChange = (newPh) => setPh(newPh);
   const handleHChange = (newH) => setPh(hToPh(newH));
+
+  const colourchangeph = () => {
+    if (ph === 7.4) {
+      return "#4caf50";
+    } else if (ph > 7.4) {
+      return "#155bc4ff";
+    } else if (ph < 7.4) {
+      return "#da1c1cff";
+    }
+  };
+
+  const colourchangeH = () => {
+    if (h === 40) {
+      return "#4caf50";
+    } else if (h < 40) {
+      return "#155bc4ff";
+    } else if (h > 40) {
+      return "#c41515ff";
+    }
+  };
 
   const curvePoints = [];
   for (let pt = PH_MIN; pt <= PH_MAX; pt += 0.02) {
@@ -34,7 +54,7 @@ export default function UnderstandingPH() {
   }
 
   const isNormal = ph >= 7.35 && ph <= 7.45;
-  const dotColor = isNormal ? "#4caf50" : "#ff1744";
+  const dotColor = ph === 7.4 ? "#4caf50" : ph > 7.4 ? "#155bc4ff" : "#da1c1cff";
 
   return (
     <div
@@ -63,7 +83,6 @@ export default function UnderstandingPH() {
           position: "relative",
         }}
       >
-        
         <div
           onClick={() => {
             window.location.href =
@@ -90,15 +109,15 @@ export default function UnderstandingPH() {
               H<sup>+</sup>
             </>
           }
-          value={parseFloat(h.toFixed(1))}
+          value={h}
           min={H_MIN}
           max={H_MAX}
-          step={0.5}
-          decimals={1}
-          thumbColor="#4caf50"
+          step={1}
+          decimals={0}
+          thumbColor={colourchangeH()}
           rightLabel={
             <>
-              {H_MAX.toFixed(1)}
+              {H_MAX}
               <br />
               nMol
             </>
@@ -112,7 +131,7 @@ export default function UnderstandingPH() {
           max={7.85}
           step={0.01}
           decimals={2}
-          thumbColor="#4caf50"
+          thumbColor={colourchangeph()}
           onChange={handlePhChange}
         />
       </div>
@@ -164,10 +183,10 @@ export default function UnderstandingPH() {
         }}
       >
         {isNormal
-          ? `Normal — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
+          ? `Normal — pH ${ph.toFixed(2)}, H⁺ ${h} nmol/L`
           : ph < 7.35
-            ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`
-            : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h.toFixed(1)} nmol/L`}
+            ? `Acidosis — pH ${ph.toFixed(2)}, H⁺ ${h} nmol/L`
+            : `Alkalosis — pH ${ph.toFixed(2)}, H⁺ ${h} nmol/L`}
       </div>
 
       {/* ── Chart — fills remaining space ── */}

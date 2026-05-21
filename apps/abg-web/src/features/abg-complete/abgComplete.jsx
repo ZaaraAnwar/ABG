@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { usePressureUnit } from "../../context/PressureUnitContext";
+import { interpret } from "../../utils/abgMath";
 
 /* --- Constants ------------------------------------------------------------ */
 const SEA_ATM = 760;
@@ -19,7 +20,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 /* --- Physics --------------------------------------------------------------- */
 function calcHCO3(ph, paco2Mmhg) {
-  const hco3 = 0.03 * paco2Mmhg * Math.pow(10, ph - 6.1);
+  const hco3 = 0.0302 * paco2Mmhg * Math.pow(10, ph - 6.1);
   if (Math.abs(ph - 7.4) < 0.01 && Math.abs(paco2Mmhg - 40) < 1) return 24;
   return hco3;
 }
@@ -40,7 +41,7 @@ function calcAA(pao2, fio2, paco2, unit) {
 
   const PAO2 = fio2 * (PATM - PH2O) - paco2Mmhg / RQ;
 
-  return Math.round(PAO2 - pao2Mmhg);
+  return Math.trunc(PAO2 - pao2Mmhg);
 }
 
 /* --- Diagnosis ------------------------------------------------------------- */
@@ -71,80 +72,7 @@ function calcAA(pao2, fio2, paco2, unit) {
     Alkalemia + high CO2               → Metabolic Alkalosis and Respiratory Acidosis
 */
 function diagnose(ph, paco2Mmhg) {
-  const hco3 = 0.03 * paco2Mmhg * Math.pow(10, ph - 6.1);
-
-  const acidemia = ph < 7.35;
-  const alkalemia = ph > 7.45;
-  const normalPh = !acidemia && !alkalemia;
-
-  const co2Low = paco2Mmhg < 35;
-  const co2High = paco2Mmhg > 45;
-  const co2Normal = !co2Low && !co2High;
-
-  const hco3Low = hco3 < 22;
-  const hco3High = hco3 > 26;
-  const hco3Normal = !hco3Low && !hco3High;
-
-  /* 1. Normal pH (7.35–7.45) */
-  if (normalPh) {
-    if (co2Normal) return { primary: null, secondary: "Normal" };
-    if (co2Low)
-      return { primary: null, secondary: "Compensated Respiratory Alkalosis" };
-    if (co2High) {
-      // High CO2 with normal pH means kidneys retained HCO3 to compensate.
-      // If HCO3 is high → that metabolic component is now the dominant label.
-      if (hco3High)
-        return {
-          primary: null,
-          secondary: "Metabolic Alkalosis and Respiratory Acidosis",
-        };
-      return { primary: null, secondary: "Compensated Respiratory Acidosis" };
-    }
-  }
-
-  /* 2. Acidemia (pH < 7.35) */
-  if (acidemia) {
-    if (co2High) {
-      if (hco3High)
-        return {
-          primary: null,
-          secondary: "Partially Compensated Respiratory Acidosis",
-        };
-      if (hco3Low)
-        return {
-          primary: null,
-          secondary: "Respiratory Acidosis and Metabolic Acidosis",
-        };
-      if (hco3Normal)
-        return { primary: null, secondary: "Respiratory Acidosis" };
-    }
-    if (co2Normal) return { primary: null, secondary: "Metabolic Acidosis" };
-    if (co2Low)
-      return {
-        primary: null,
-        secondary: "Partially Compensated Metabolic Acidosis",
-      };
-  }
-
-  /* 3. Alkalemia (pH > 7.45) */
-  if (alkalemia) {
-    if (co2Low) {
-      if (hco3Low)
-        return {
-          primary: null,
-          secondary: "Partially Compensated Respiratory Alkalosis",
-        };
-      return { primary: null, secondary: "Respiratory Alkalosis" };
-    }
-    if (co2Normal) return { primary: null, secondary: "Metabolic Alkalosis" };
-    if (co2High)
-      return {
-        primary: null,
-        secondary: "Metabolic Alkalosis and Respiratory Acidosis",
-      };
-  }
-
-  return { primary: null, secondary: "Indeterminate" };
+  return { primary: null, secondary: interpret(ph, paco2Mmhg) };
 }
 
 /* --- Unit configs ---------------------------------------------------------- */
@@ -360,7 +288,7 @@ function VerticalBar({
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}
     >
       <div
         style={{
@@ -396,7 +324,8 @@ function VerticalBar({
         style={{
           width: "100%",
           maxWidth: barW,
-          height: barH,
+          minHeight: barH,
+          flex: 1,
           background: bgColor,
           position: "relative",
           paddingTop: 18,
@@ -404,7 +333,6 @@ function VerticalBar({
           cursor: isInteractive ? "ns-resize" : "default",
           touchAction: "none",
           userSelect: "none",
-          flexShrink: 0,
         }}
       >
         {ticks.map(({ label, pct: tp }) => (
@@ -503,13 +431,17 @@ export default function ABGTutor() {
   const diagnosis = useMemo(() => diagnose(ph, paco2Mmhg), [ph, paco2Mmhg]);
 
   const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
-  const extTarget =
-    paco2Mmhg < 40
-      ? { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" }
-      : {
-          label: "Metabolic Alkalosis",
-          url: "https://abg.leadows.com/metabolic-alkalosis/",
-        };
+  const extTarget = useMemo(() => {
+    const d = diagnosis.secondary;
+    if (d.includes("Respiratory") || d.includes("Mixed") || d === "Normal") return null;
+    if (d.includes("Metabolic Alkalosis")) {
+      return { label: "Metabolic Alkalosis", url: "https://abg.leadows.com/metabolic-alkalosis/" };
+    }
+    if (d.includes("Metabolic Acidosis")) {
+      return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
+    }
+    return null;
+  }, [diagnosis.secondary]);
 
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
@@ -575,7 +507,7 @@ export default function ABGTutor() {
           display: grid;
           grid-template-columns: minmax(0, 110px) minmax(0, 1fr) minmax(0, 110px);
           gap: 20px;
-          align-items: start;
+          align-items: stretch;
         }
 
         .abg-side {
@@ -741,7 +673,7 @@ export default function ABGTutor() {
           {/* CENTRE */}
           <div className="abg-center">
             {/* Interpretation box */}
-            <div className="interp-box">
+            <div className="interp-box" style={{ visibility: paco2 <= 0.7 ? "hidden" : "visible" }}>
               <h2>Interpretation</h2>
               <div className="interp-body">
                 <div>&#8226; {diagnosis.secondary}</div>
@@ -763,16 +695,15 @@ export default function ABGTutor() {
               {flowUrl && (
                 <div
                   className="flowchart-btn"
-                  onClick={() => window.open(flowUrl, "_blank", "noopener")}
+                  onClick={() => { window.location.href = flowUrl; }}
                   title={
                     isAcidic ? "Acidosis Flowchart" : "Alkalosis Flowchart"
                   }
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" &&
-                    window.open(flowUrl, "_blank", "noopener")
-                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") window.location.href = flowUrl;
+                  }}
                 >
                   <svg
                     width="24"
@@ -839,14 +770,14 @@ export default function ABGTutor() {
 
             {/* Extended ABG popup + button */}
             <div className="popup-wrap">
-              {isChanged && popupOpen && (
+              {isChanged && popupOpen && extTarget && (
                 <div className="popup">
                   <div className="popup-title">Extended ABG</div>
                   <button
                     className="popup-btn"
-                    onClick={() =>
-                      window.open(extTarget.url, "_blank", "noopener")
-                    }
+                    onClick={() => {
+                      window.location.href = extTarget.url;
+                    }}
                   >
                     {extTarget.label}
                   </button>
@@ -855,8 +786,8 @@ export default function ABGTutor() {
               )}
               <button
                 className="ext-btn"
-                disabled={!isChanged}
-                onClick={() => isChanged && setPopupOpen((p) => !p)}
+                disabled={!isChanged || !extTarget}
+                onClick={() => extTarget && isChanged && setPopupOpen((p) => !p)}
               >
                 Press For Extended ABG
               </button>
