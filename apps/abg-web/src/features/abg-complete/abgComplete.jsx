@@ -288,7 +288,12 @@ function VerticalBar({
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        flex: 1,
+      }}
     >
       <div
         style={{
@@ -433,15 +438,28 @@ export default function ABGTutor() {
   const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
   const extTarget = useMemo(() => {
     const d = diagnosis.secondary;
-    if (d.includes("Respiratory") || d.includes("Mixed") || d === "Normal") return null;
+    if (d === "Normal") return null;
+
+    // Low PaCO2 (respiratory alkalosis territory) → show Metabolic Alkalosis
+    if (paco2 < paco2Cfg.normal - 0.05) {
+      return {
+        label: "Metabolic Alkalosis",
+        url: "https://abg.leadows.com/metabolic-alkalosis/",
+      };
+    }
+
+    // High PaCO2 (respiratory acidosis territory)
     if (d.includes("Metabolic Alkalosis")) {
-      return { label: "Metabolic Alkalosis", url: "https://abg.leadows.com/metabolic-alkalosis/" };
+      return {
+        label: "Metabolic Alkalosis",
+        url: "https://abg.leadows.com/metabolic-alkalosis/",
+      };
     }
     if (d.includes("Metabolic Acidosis")) {
       return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
     }
     return null;
-  }, [diagnosis.secondary]);
+  }, [diagnosis.secondary, paco2, paco2Cfg.normal]);
 
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
@@ -673,7 +691,10 @@ export default function ABGTutor() {
           {/* CENTRE */}
           <div className="abg-center">
             {/* Interpretation box */}
-            <div className="interp-box" style={{ visibility: paco2 <= 0.7 ? "hidden" : "visible" }}>
+            <div
+              className="interp-box"
+              style={{ visibility: paco2 <= 0.7 ? "hidden" : "visible" }}
+            >
               <h2>Interpretation</h2>
               <div className="interp-body">
                 <div>&#8226; {diagnosis.secondary}</div>
@@ -695,7 +716,9 @@ export default function ABGTutor() {
               {flowUrl && (
                 <div
                   className="flowchart-btn"
-                  onClick={() => { window.location.href = flowUrl; }}
+                  onClick={() => {
+                    window.location.href = flowUrl;
+                  }}
                   title={
                     isAcidic ? "Acidosis Flowchart" : "Alkalosis Flowchart"
                   }
@@ -787,7 +810,9 @@ export default function ABGTutor() {
               <button
                 className="ext-btn"
                 disabled={!isChanged || !extTarget}
-                onClick={() => extTarget && isChanged && setPopupOpen((p) => !p)}
+                onClick={() =>
+                  extTarget && isChanged && setPopupOpen((p) => !p)
+                }
               >
                 Press For Extended ABG
               </button>
