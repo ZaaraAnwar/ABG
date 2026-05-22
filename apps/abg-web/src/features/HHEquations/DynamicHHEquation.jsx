@@ -241,7 +241,7 @@ function AnimatedFormula({ stage, annotation, frozen, activeOrgan }) {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               style={{
-                fontSize: 14,
+                fontSize: 17,
                 color: "#7a5a91",
                 fontWeight: 500,
                 fontStyle: "italic",
@@ -321,8 +321,8 @@ export default function DynamicHHEquation() {
   }, [hco3, paco2, CO2_FACTOR]);
 
   const displayedPh = ph > 0 ? round1(ph) : 0.0;
-  const hco3Color = getHco3Color(hco3);
-  const paco2Color = getPaco2Color(paco2, normalPaco2);
+  const hco3Color = Math.abs(hco3 - NORMAL_HCO3) < 0.05 ? "#4caf50" : hco3 < NORMAL_HCO3 ? "#ff1744" : "#2196f3";
+  const paco2Color = Math.abs(paco2 - normalPaco2) < 0.05 ? "#4caf50" : paco2 < normalPaco2 ? "#ff1744" : "#2196f3";
 
   /* ── Animation state ── */
   const [isPlaying, setIsPlaying] = useState(false);
@@ -511,8 +511,7 @@ export default function DynamicHHEquation() {
           alt="Kidneys"
           width={110}
           marginBottom={28}
-          isActive={activeOrgan === "kidney"}
-          glowColor="rgba(29,44,255,0.65)"
+
         />
 
         {/* HCO3 slider */}
@@ -548,8 +547,8 @@ export default function DynamicHHEquation() {
           width={110}
           marginTop={6}
           marginBottom={28}
-          isActive={activeOrgan === "lungs"}
-          glowColor="rgba(192,57,43,0.65)"
+
+        
         />
 
         {/* pH result box (unchanged) */}

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from "react";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 // ============================================================================
@@ -253,6 +252,113 @@ const LEFT_SAT_TABLE = [
   [500, 100],
 ];
 
+// Clinically-accurate lookup table for the right-shifted ODC curve
+const RIGHT_SAT_TABLE = [
+  [0, -1],
+  [1, -1],
+  [2, -1],
+  [3, -1],
+  [4, 0],
+  [5, 0],
+  [6, 1],
+  [7, 2],
+  [8, 3],
+  [9, 5],
+  [10, 6],
+  [11, 8],
+  [12, 10],
+  [13, 12],
+  [14, 14],
+  [15, 16],
+  [16, 18],
+  [17, 20],
+  [18, 22],
+  [19, 24],
+  [20, 26],
+  [21, 28],
+  [22, 30],
+  [23, 32],
+  [24, 34],
+  [25, 37],
+  [26, 39],
+  [27, 40],
+  [28, 42],
+  [29, 44],
+  [30, 46],
+  [31, 48],
+  [32, 50],
+  [33, 52],
+  [34, 53],
+  [35, 55],
+  [36, 57],
+  [37, 58],
+  [38, 60],
+  [39, 61],
+  [40, 63],
+  [41, 64],
+  [42, 66],
+  [43, 67],
+  [44, 69],
+  [45, 70],
+  [46, 71],
+  [47, 73],
+  [48, 74],
+  [49, 75],
+  [50, 76],
+  [51, 77],
+  [52, 78],
+  [53, 79],
+  [54, 80],
+  [55, 81],
+  [56, 82],
+  [57, 82],
+  [58, 83],
+  [59, 84],
+  [60, 85],
+  [61, 85],
+  [62, 86],
+  [63, 87],
+  [64, 87],
+  [65, 88],
+  [66, 88],
+  [67, 89],
+  [68, 89],
+  [69, 90],
+  [70, 90],
+  [71, 90],
+  [72, 91],
+  [73, 91],
+  [74, 91],
+  [75, 92],
+  [76, 92],
+  [77, 92],
+  [78, 93],
+  [79, 93],
+  [80, 93],
+  [81, 93],
+  [82, 93],
+  [83, 93],
+  [84, 94],
+  [85, 94],
+  [86, 94],
+  [87, 94],
+  [88, 95],
+  [89, 95],
+  [90, 95],
+  [91, 95],
+  [92, 95],
+  [93, 95],
+  [94, 95],
+  [95, 96],
+  [96, 96],
+  [97, 96],
+  [98, 96],
+  [99, 96],
+  [100, 96],
+  [150, 98],
+  [500, 100],
+];
+
 function lookupSatTable(po2, table) {
   if (po2 <= 0) return -1;
   if (po2 >= table[table.length - 1][0]) return table[table.length - 1][1];
@@ -275,11 +381,15 @@ function lookupSatLeft(po2) {
   return lookupSatTable(po2, LEFT_SAT_TABLE);
 }
 
-// Use the clinical lookup table for normal and left shift; Hill equation (offset by -1) for right shift
+function lookupSatRight(po2) {
+  return lookupSatTable(po2, RIGHT_SAT_TABLE);
+}
+
+// Use the clinical lookup tables for all shift directions
 function getCorrectedSaturation(po2, shiftDir, p50) {
   if (shiftDir === "left") return lookupSatLeft(po2);
-  if (shiftDir === "none") return lookupSatNormal(po2);
-  return hillSat(po2, p50) - 1;
+  if (shiftDir === "right") return lookupSatRight(po2);
+  return lookupSatNormal(po2);
 }
 
 const po2ToX = (po2) => PAD_L + (po2 / 100) * CW;
@@ -484,7 +594,9 @@ function ResultsPanel({
           <div style={gridStyle}>
             <div style={cellHeader(isMobile)}>Hb Saturation</div>
             <div style={cellHeader(isMobile)}>PO₂ (mmHg)</div>
-            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>Enter Hb(g/dl)</div>
+            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>
+              Enter Hb(g/dl)
+            </div>
           </div>
           <div style={gridStyle}>
             <div style={redCell(cellFontSize, cellPadding)}>
@@ -527,7 +639,9 @@ function ResultsPanel({
           <div style={gridStyle}>
             <div style={cellHeader(isMobile)}>Hb Saturation</div>
             <div style={cellHeader(isMobile)}>Stroke Vol</div>
-            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>Enter Hb(g/dl)</div>
+            <div style={{ ...cellHeader(isMobile), color: "#cc0000" }}>
+              Enter Hb(g/dl)
+            </div>
           </div>
           <div style={gridStyle}>
             <div style={redCell(cellFontSize, cellPadding)}>
@@ -698,7 +812,13 @@ function OdcCanvas({
         for (let pass = 0; pass < 5; pass++) {
           const smoothed = ys.slice();
           for (let i = 2; i < ys.length - 2; i++) {
-            smoothed[i] = (ys[i - 2] + 2 * ys[i - 1] + 3 * ys[i] + 2 * ys[i + 1] + ys[i + 2]) / 9;
+            smoothed[i] =
+              (ys[i - 2] +
+                2 * ys[i - 1] +
+                3 * ys[i] +
+                2 * ys[i + 1] +
+                ys[i + 2]) /
+              9;
           }
           ys = smoothed;
         }
@@ -729,9 +849,10 @@ function OdcCanvas({
       }
       if (shiftDir !== "none") {
         const labelPO2 = 55;
-        const labelSat = shiftDir === "left"
-          ? lookupSatLeft(labelPO2)
-          : hillSat(labelPO2, P50_RIGHT);
+        const labelSat =
+          shiftDir === "left"
+            ? lookupSatLeft(labelPO2)
+            : hillSat(labelPO2, P50_RIGHT);
         ctx.font = "bold 10px sans-serif";
         ctx.fillStyle = shiftDir === "left" ? "#2a6ab0" : "#c03060";
         ctx.textAlign = "left";
@@ -984,7 +1105,7 @@ export default function App() {
   const [heartRate, setHeartRate] = useState(60);
   const [hb, setHb] = useState(5);
   const [strokeVolume, setStrokeVolume] = useState(90);
-  const [interactivePO2, setInteractivePO2] = useState(20);
+  const [interactivePO2, setInteractivePO2] = useState(26);
   const [shiftDir, setShiftDir] = useState("none");
   const [activeTab, setActiveTab] = useState("o2");
   const p50 = getP50(shiftDir);
@@ -1002,17 +1123,17 @@ export default function App() {
     if (activePO2 === 0) contentO2Raw = -0.07;
     if (activePO2 === 20 && Math.round(activeSat) === 47) contentO2Raw = 3.24; // User requested 3.24 at 20
     if (activePO2 === 29 && Math.round(activeSat) === 47) contentO2Raw = 3.24; // Fallback
-    if (activePO2 === 32 && Math.round(activeSat) === 74) contentO2Raw = 5.10; // Precision fix
+    if (activePO2 === 32 && Math.round(activeSat) === 74) contentO2Raw = 5.1; // Precision fix
     if (activePO2 === 100 && Math.round(activeSat) === 98) contentO2Raw = 6.87; // Reference uses 1.34
   } else if (shiftDir === "none") {
-    if (activePO2 === 0) contentO2Raw = 0.00;
+    if (activePO2 === 0) contentO2Raw = 0.0;
     if (activePO2 === 20) contentO2Raw = 2.49;
     if (activePO2 === 40) contentO2Raw = 5.18;
     if (activePO2 === 60) contentO2Raw = 6.31;
-    if (activePO2 === 80) contentO2Raw = 6.70;
+    if (activePO2 === 80) contentO2Raw = 6.7;
     if (activePO2 === 100) contentO2Raw = 6.81;
   }
-  
+
   const contentO2 = contentO2Raw.toFixed(2);
   // Cardiac Output (L/min) = HR × SV (ml) / 1000
   const cardiacOutput = (heartRate * strokeVolume) / 1000;
@@ -1044,8 +1165,6 @@ export default function App() {
         position: "relative",
       }}
     >
-
-
       <div
         style={{
           maxWidth: 1200,
@@ -1087,8 +1206,14 @@ export default function App() {
             }}
           >
             <div
-              onClick={() => { window.location.href = "https://abg.leadows.com/about-odc/"; }}
-              style={{ display: "flex", justifyContent: "flex-end", cursor: "pointer" }}
+              onClick={() => {
+                window.location.href = "https://abg.leadows.com/about-odc/";
+              }}
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                cursor: "pointer",
+              }}
             >
               <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
             </div>

@@ -437,25 +437,43 @@ export default function ABGTutor() {
 
   const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
   const extTarget = useMemo(() => {
-    const paco2Lo1 = unit === "kPa" ? 0.07 : kpaToMmhg(0.07);
-    const paco2Hi1 = unit === "kPa" ? 2.3 : kpaToMmhg(2.3);
-    const paco2Lo2 = unit === "kPa" ? 2.3 : kpaToMmhg(2.3);
-    const paco2Hi2 = unit === "kPa" ? 5.8 : kpaToMmhg(5.8);
-    const paco2Lo3 = unit === "kPa" ? 5.9 : kpaToMmhg(5.9);
-    const paco2Hi3 = unit === "kPa" ? 30.0 : kpaToMmhg(30.0);
+    /*
+     * pH-dependent HCO3 thresholds via piecewise linear interpolation.
+     *
+     * Anion Gap upper HCO3 calibration:
+     *   pH 6.80→34, 7.00→32, 7.26→25, 7.40→10, 7.60→8
+     *
+     * Metabolic Alkalosis lower HCO3 calibration:
+     *   pH <7.35 → disabled (acidemia)
+     *   pH 7.40→26, 7.60→21, 7.85→19
+     */
+    const piecewise = (x, pts) => {
+      if (x <= pts[0][0]) return pts[0][1];
+      for (let i = 0; i < pts.length - 1; i++) {
+        if (x <= pts[i + 1][0]) {
+          const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+          return y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
+        }
+      }
+      return pts[pts.length - 1][1];
+    };
 
-    // 0.07 – 2.3 → Anion Gap
-    if (paco2 >= paco2Lo1 && paco2 <= paco2Hi1) {
+    const agMax = piecewise(ph, [
+      [6.80, 34], [7.00, 32], [7.26, 25], [7.40, 10], [7.60, 8],
+    ]);
+
+    const maDisabled = ph < 7.35;
+    const maMin = piecewise(ph, [
+      [7.35, 26], [7.40, 26], [7.60, 21], [7.85, 19],
+    ]);
+
+    const h = hco3;
+
+    if (h >= 1 && h <= agMax) {
       return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
     }
 
-    // 2.3 – 5.8 → disabled
-    if (paco2 > paco2Lo2 && paco2 <= paco2Hi2) {
-      return null;
-    }
-
-    // 5.9 – 30.0 → Metabolic Alkalosis
-    if (paco2 >= paco2Lo3 && paco2 <= paco2Hi3) {
+    if (!maDisabled && h >= maMin) {
       return {
         label: "Metabolic Alkalosis",
         url: "https://abg.leadows.com/metabolic-alkalosis/",
@@ -463,7 +481,7 @@ export default function ABGTutor() {
     }
 
     return null;
-  }, [paco2, unit]);
+  }, [ph, hco3]);
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
   const flowUrl = isAcidic

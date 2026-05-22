@@ -177,7 +177,7 @@ export default function UnderstandingPH() {
           textAlign: "center",
           marginBottom: 6,
           fontSize: 13,
-          color: isNormal ? "#4caf50" : "#ff1744",
+          color: isNormal ? "#4caf50" : ph < 7.35 ? "#ff1744" : "#2196f3",
           fontWeight: 500,
           flexShrink: 0,
         }}
