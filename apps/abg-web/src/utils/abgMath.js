@@ -56,12 +56,7 @@ export function interpret(ph, paco2) {
   const within = (value, low, high) => value >= low && value <= high;
   const near = (value, target, tol) => Math.abs(value - target) <= tol;
 
-  const normalPCO2 = within(paco2, 35, 45);
-  const normalHCO3 = within(hco3, 22, 26);
 
-  if (normalPh && normalPCO2 && normalHCO3) {
-    return "Normal";
-  }
 
   // Expected compensation formulas
   const expectedWinter = 1.5 * hco3 + 8;         // metabolic acidosis
@@ -77,13 +72,23 @@ export function interpret(ph, paco2) {
   if (acidemia) {
     // Primary respiratory acidosis
     if (paco2 > 45) {
-      if (near(hco3, acuteRespAcidHCO3, 2) || near(hco3, chronicRespAcidHCO3, 3)) {
-        return "Respiratory Acidosis";
-      }
+      const isAcute = near(hco3, acuteRespAcidHCO3, 2);
+      const isChronic = near(hco3, chronicRespAcidHCO3, 3);
+      
       if (hco3 < acuteRespAcidHCO3 - 2) {
         return "Respiratory Acidosis and\nMetabolic Acidosis";
       }
-      return "Respiratory Acidosis";
+      if (hco3 > chronicRespAcidHCO3 + 3) {
+        return "Respiratory Acidosis and\nMetabolic Alkalosis";
+      }
+      if (isAcute) {
+        return "Acute Respiratory Acidosis";
+      }
+      if (isChronic) {
+        return "Chronic Respiratory Acidosis";
+      }
+      // Between acute and chronic
+      return "Partially Compensated Respiratory Acidosis";
     }
 
     // Primary metabolic acidosis
@@ -106,13 +111,22 @@ export function interpret(ph, paco2) {
   if (alkalemia) {
     // Primary respiratory alkalosis
     if (paco2 < 35) {
-      if (near(hco3, acuteRespAlkHCO3, 2) || near(hco3, chronicRespAlkHCO3, 3)) {
-        return "Respiratory Alkalosis";
-      }
+      const isAcute = near(hco3, acuteRespAlkHCO3, 2);
+      const isChronic = near(hco3, chronicRespAlkHCO3, 3);
+      
       if (hco3 > acuteRespAlkHCO3 + 2) {
         return "Respiratory Alkalosis and\nMetabolic Alkalosis";
       }
-      return "Respiratory Alkalosis";
+      if (hco3 < chronicRespAlkHCO3 - 3) {
+        return "Respiratory Alkalosis and\nMetabolic Acidosis";
+      }
+      if (isAcute) {
+        return "Acute Respiratory Alkalosis";
+      }
+      if (isChronic) {
+        return "Chronic Respiratory Alkalosis";
+      }
+      return "Partially Compensated Respiratory Alkalosis";
     }
 
     // Primary metabolic alkalosis
@@ -134,33 +148,41 @@ export function interpret(ph, paco2) {
 
   // 2) Normal pH: likely fully compensated or mixed
   if (normalPh) {
-    // Respiratory alkalosis pattern: low PaCO2 + low HCO3
-    if (paco2 < 35 && hco3 < 22) {
-      const acuteMatch = near(hco3, acuteRespAlkHCO3, 2);
-      const chronicMatch = near(hco3, chronicRespAlkHCO3, 3);
-
-      if (acuteMatch || chronicMatch) {
-        return "Compensated Respiratory Alkalosis";
-      }
-      return "Respiratory Alkalosis and\nMetabolic Acidosis";
+    if (near(paco2, 40, 0.5) && near(hco3, 24, 1)) {
+      return "Normal";
     }
 
-    // Respiratory acidosis pattern: high PaCO2 + high HCO3
-    if (paco2 > 45 && hco3 > 26) {
-      const acuteMatch = near(hco3, acuteRespAcidHCO3, 2);
-      const chronicMatch = near(hco3, chronicRespAcidHCO3, 3);
-
-      if (acuteMatch || chronicMatch) {
+    if (paco2 > 40) {
+      if (hco3 > 26) {
+        const expectedMetAlk = 0.7 * hco3 + 20;
+        if (paco2 > expectedMetAlk + 5) {
+          return "Metabolic Alkalosis and\nRespiratory Acidosis";
+        }
+        return "Compensated Metabolic Alkalosis";
+      } else {
+        const chronicRespAcidHCO3 = 24 + ((paco2 - 40) / 10) * 4;
+        if (hco3 > chronicRespAcidHCO3 + 3) {
+           return "Respiratory Acidosis and\nMetabolic Alkalosis";
+        }
         return "Compensated Respiratory Acidosis";
       }
-      return "Metabolic Alkalosis and\nRespiratory Acidosis";
     }
 
-    // If pH is normal but only one arm is abnormal, lean by primary direction
-    if (paco2 < 35) return "Compensated Respiratory Alkalosis";
-    if (paco2 > 45) return "Compensated Respiratory Acidosis";
-    if (hco3 < 22) return "Compensated Metabolic Acidosis";
-    if (hco3 > 26) return "Compensated Metabolic Alkalosis";
+    if (paco2 < 40) {
+      if (hco3 < 22) {
+        const expectedWinter = 1.5 * hco3 + 8;
+        if (paco2 < expectedWinter - 2) {
+          return "Respiratory Alkalosis and\nMetabolic Acidosis";
+        }
+        return "Compensated Metabolic Acidosis";
+      } else {
+        const chronicRespAlkHCO3 = 24 - ((40 - paco2) / 10) * 4.5;
+        if (hco3 < chronicRespAlkHCO3 - 3) {
+          return "Respiratory Alkalosis and\nMetabolic Acidosis";
+        }
+        return "Compensated Respiratory Alkalosis";
+      }
+    }
   }
 
   return "Mixed Disorder";
@@ -182,7 +204,7 @@ export function buildRegions() {
 
   // Metabolic Acidosis
   let ma = [];
-  for (let hco3 = 4; hco3 <= 21; hco3 += 0.4) {
+  for (let hco3 = 1; hco3 <= 21; hco3 += 0.4) {
     const centerPco2 = 1.5 * hco3 + 8;
     for (let d = -2; d <= 2; d += 0.8) {
       const p = centerPco2 + d;
@@ -193,7 +215,7 @@ export function buildRegions() {
 
   // Metabolic Alkalosis
   let mAlk = [];
-  for (let hco3 = 26; hco3 <= 55; hco3 += 0.4) {
+  for (let hco3 = 26; hco3 <= 200; hco3 += 0.8) {
     const centerPco2 = 0.7 * hco3 + 21;
     for (let d = -2; d <= 2; d += 0.8) {
       mAlk.push({

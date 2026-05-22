@@ -322,7 +322,7 @@ export default function DynamicHHEquation() {
 
   const displayedPh = ph > 0 ? round1(ph) : 0.0;
   const hco3Color = Math.abs(hco3 - NORMAL_HCO3) < 0.05 ? "#4caf50" : hco3 < NORMAL_HCO3 ? "#ff1744" : "#2196f3";
-  const paco2Color = Math.abs(paco2 - normalPaco2) < 0.05 ? "#4caf50" : paco2 < normalPaco2 ? "#ff1744" : "#2196f3";
+  const paco2Color = Math.abs(paco2 - normalPaco2) < 0.05 ? "#4caf50" : paco2 < normalPaco2 ? "#2196f3" : "#ff1744";
 
   /* ── Animation state ── */
   const [isPlaying, setIsPlaying] = useState(false);

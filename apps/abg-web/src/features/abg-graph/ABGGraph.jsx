@@ -37,7 +37,11 @@ function getPhThumbColor(value) {
   if (value > NORMAL_PH) return "#2196f3";
   return "#ff1744";
 }
-function getPaco2ThumbColor(value, normalPaco2) {
+function getPaco2ThumbColor(value, normalPaco2, unit) {
+  if (unit === "kPa") {
+    if (value >= 1.0) return "#ff1744";
+    return "#2196f3";
+  }
   if (Math.abs(value - normalPaco2) < 0.05) return "#7cb342";
   if (value < normalPaco2) return "#2196f3";
   return "#ff1744";
@@ -238,7 +242,7 @@ export default function ABGGraph() {
   );
   const regions = useMemo(() => buildRegions(), []);
 
-  const paco2ThumbColor = getPaco2ThumbColor(paco2, normalPaco2);
+  const paco2ThumbColor = getPaco2ThumbColor(paco2, normalPaco2, unit);
   const phThumbColor = getPhThumbColor(ph);
 
   return (
@@ -338,26 +342,13 @@ export default function ABGGraph() {
           flex: 1,
           minHeight: 0,
           position: "relative",
-          paddingLeft: 16,
-          paddingBottom: 28,
+          paddingLeft: 56, // Space for PaCO2 label and Y ticks
+          paddingBottom: 44, // Space for X ticks and pH label
+          paddingRight: 20, // Space for X axis extending to the right
+          paddingTop: 20,
           boxSizing: "border-box",
         }}
       >
-        {/* X-axis label */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 4,
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#666",
-            pointerEvents: "none",
-          }}
-        >
-          pH
-        </div>
 
         {/* SVG fills 100% of the flex child */}
         <svg
@@ -370,18 +361,35 @@ export default function ABGGraph() {
             overflow: "visible",
           }}
         >
-          {/* Y-axis label — inside SVG, rotated tight beside tick numbers */}
+          {/* Main Axes */}
+          <line x1="0" y1="-20" x2="0" y2={SVG_H} stroke="#222" strokeWidth="1.5" />
+          <line x1="0" y1={SVG_H} x2={SVG_W + 20} y2={SVG_H} stroke="#222" strokeWidth="1.5" />
+
+          {/* Y-axis label */}
           <text
-            x="-38"
+            x="-46"
             y={SVG_H / 2}
-            fontSize="13"
-            fill="#666"
-            fontWeight="600"
+            fontSize="20"
+            fill="#000"
+            fontWeight="400"
             textAnchor="middle"
-            transform={`rotate(-90, -38, ${SVG_H / 2})`}
+            transform={`rotate(-90, -46, ${SVG_H / 2})`}
             fontFamily="'Segoe UI', system-ui, sans-serif"
           >
-            {`PaCO₂ (${unit})`}
+            {`PaCO₂`}
+          </text>
+
+          {/* X-axis label */}
+          <text
+            x={SVG_W + 20}
+            y={SVG_H + 34}
+            fontSize="20"
+            fill="#000"
+            fontWeight="400"
+            textAnchor="end"
+            fontFamily="'Segoe UI', system-ui, sans-serif"
+          >
+            pH
           </text>
           {/* Y-axis grid */}
           {yTicks.map((val) => (
@@ -391,14 +399,14 @@ export default function ABGGraph() {
                 x2={SVG_W}
                 y1={mapDisplayY(val)}
                 y2={mapDisplayY(val)}
-                stroke="#eee"
+                stroke="#b0b0b0"
                 strokeWidth="1"
               />
               <text
-                x="-10"
+                x="-12"
                 y={mapDisplayY(val) + 5}
-                fontSize="14"
-                fill="#888"
+                fontSize="16"
+                fill="#000"
                 textAnchor="end"
               >
                 {isKpa ? val.toFixed(0) : val}
@@ -414,14 +422,14 @@ export default function ABGGraph() {
                 x2={mapX(val)}
                 y1="0"
                 y2={SVG_H}
-                stroke="#eee"
+                stroke="#b0b0b0"
                 strokeWidth="1"
               />
               <text
                 x={mapX(val)}
-                y={SVG_H + 20}
-                fontSize="14"
-                fill="#888"
+                y={SVG_H + 22}
+                fontSize="16"
+                fill="#000"
                 textAnchor="middle"
               >
                 {val.toFixed(1)}
@@ -431,13 +439,13 @@ export default function ABGGraph() {
 
           {/* Regions */}
           {regions.map((r, i) => (
-            <g key={`region-${i}`} fill={r.color} opacity="0.8">
+            <g key={`region-${i}`} fill={r.color} opacity="1">
               {r.points.map((pt, j) =>
                 pt.ph >= PH_MIN &&
                 pt.ph <= PH_MAX &&
                 pt.pco2 >= 0 &&
                 pt.pco2 <= 160 ? (
-                  <circle key={j} cx={mapX(pt.ph)} cy={mapY(pt.pco2)} r="6" />
+                  <circle key={j} cx={mapX(pt.ph)} cy={mapY(pt.pco2)} r="7" />
                 ) : null,
               )}
             </g>
@@ -447,11 +455,10 @@ export default function ABGGraph() {
           <circle
             cx={mapX(ph)}
             cy={mapY(paco2ForPlot)}
-            r="9"
-            fill="#ff1744"
+            r="8"
+            fill="#e11c2a"
             style={{
               transition: "cx 0.1s linear, cy 0.1s linear",
-              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
             }}
           />
         </svg>
@@ -461,12 +468,15 @@ export default function ABGGraph() {
       <div
         style={{
           flexShrink: 0,
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "4px 8px",
-          fontSize: 10,
-          color: "#555",
-          paddingTop: 6,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "6px 12px",
+          fontSize: 11,
+          fontWeight: 500,
+          color: "#444",
+          paddingTop: 10,
+          paddingBottom: 6,
           borderTop: "1px solid #f0f0f0",
         }}
       >

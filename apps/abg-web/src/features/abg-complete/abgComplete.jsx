@@ -145,14 +145,12 @@ function PHScale({ ph, onChange }) {
   const segs = Array.from({ length: N }, (_, i) => r2(winMin + i * STEP));
 
   const rgb = (v) => {
-    if (v < 7.35) return [239, 68, 68];
+    if (v < 7.35) return [239, 68, 68]; // Red for acidosis
 
-    // make both 7.35 and 7.36 green
-    if (v <= 7.43) return [34, 197, 94];
+    // Normal range 7.35 - 7.45
+    if (v <= 7.45) return [34, 197, 94]; // Green for normal
 
-    if (v <= 7.46) return [96, 165, 250];
-
-    return [59, 130, 246];
+    return [59, 130, 246]; // Blue for alkalosis
   };
 
   return (
