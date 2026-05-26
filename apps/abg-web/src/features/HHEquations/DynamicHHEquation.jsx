@@ -106,23 +106,24 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
 
   const baseStyle = {
     fontFamily: "Georgia, 'Times New Roman', serif",
-    fontSize: 22,
+    fontSize: "clamp(12px, 4vw, 22px)",
     color: "#333",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    flexWrap: "wrap",
+    gap: "0.25em",
+    flexWrap: "nowrap",
+    whiteSpace: "nowrap",
     minHeight: 60,
   };
 
   /* Stage 6 — final pH */
   if (stage === 6) {
     return (
-      <div style={{ ...baseStyle, gap: 10 }}>
+      <div style={{ ...baseStyle, gap: "0.45em" }}>
         <span style={{ fontStyle: "italic" }}>pH</span>
         <span>=</span>
-        <span style={{ color: "#7a5a91", fontWeight: 700, fontSize: 28 }}>{phResult}</span>
+        <span style={{ color: "#7a5a91", fontWeight: 700, fontSize: "1.27em" }}>{phResult}</span>
       </div>
     );
   }
@@ -132,9 +133,9 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
     return (
       <div style={baseStyle}>
         <span style={{ fontStyle: "italic" }}>pH</span>
-        <span style={{ margin: "0 4px" }}>=</span>
+        <span style={{ margin: "0 0.18em" }}>=</span>
         <span>6.1</span>
-        <span style={{ margin: "0 4px" }}>+</span>
+        <span style={{ margin: "0 0.18em" }}>+</span>
         <span style={{ color: "#7a5a91" }}>{logVal.toFixed(3)}</span>
       </div>
     );
@@ -153,7 +154,7 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
     ? (
       <>
         <span style={{ fontStyle: "italic" }}>pK</span>
-        <sub style={{ fontStyle: "italic", fontSize: 14, marginLeft: -2 }}>a</sub>
+        <sub style={{ fontStyle: "italic", fontSize: "0.63em", marginLeft: "-0.1em" }}>a</sub>
       </>
     )
     : <span>6.1</span>;
@@ -163,7 +164,7 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
     ? <span style={{ fontStyle: "italic", ...numGlow }}>{hco3.toFixed(1)}</span>
     : (
       <span style={{ fontStyle: "italic", ...numGlow }}>
-        HCO<sub style={{ fontSize: 13 }}>3</sub><sup style={{ fontSize: 13 }}>−</sup>
+        HCO<sub style={{ fontSize: "0.59em" }}>3</sub><sup style={{ fontSize: "0.59em" }}>−</sup>
       </span>
     );
 
@@ -172,13 +173,13 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
   if (stage <= 1) {
     denominator = (
       <span style={{ fontStyle: "italic", ...denGlow }}>
-        H<sub style={{ fontSize: 13 }}>2</sub>CO<sub style={{ fontSize: 13 }}>3</sub>
+        H<sub style={{ fontSize: "0.59em" }}>2</sub>CO<sub style={{ fontSize: "0.59em" }}>3</sub>
       </span>
     );
   } else if (stage === 2) {
     denominator = (
       <span style={{ fontStyle: "italic", ...denGlow }}>
-        ({frozen.co2Factor} × PaCO<sub style={{ fontSize: 13 }}>2</sub>)
+        ({frozen.co2Factor} × PaCO<sub style={{ fontSize: "0.59em" }}>2</sub>)
       </span>
     );
   } else {
@@ -193,19 +194,19 @@ function FormulaContent({ stage, frozen, activeOrgan }) {
   return (
     <div style={baseStyle}>
       <span style={{ fontStyle: "italic" }}>pH</span>
-      <span style={{ margin: "0 4px" }}>=</span>
+      <span style={{ margin: "0 0.18em" }}>=</span>
       {pKaPart}
-      <span style={{ margin: "0 4px" }}>+</span>
-      <span style={{ fontStyle: "italic", marginRight: 2 }}>log</span>
-      <sub style={{ fontSize: 14, marginLeft: -2, marginRight: 4 }}>10</sub>
-      <span style={{ fontSize: 26 }}>(</span>
+      <span style={{ margin: "0 0.18em" }}>+</span>
+      <span style={{ fontStyle: "italic", marginRight: "0.09em" }}>log</span>
+      <sub style={{ fontSize: "0.63em", marginLeft: "-0.09em", marginRight: "0.18em" }}>10</sub>
+      <span style={{ fontSize: "1.18em" }}>(</span>
       <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", verticalAlign: "middle" }}>
-        <span style={{ borderBottom: "1.5px solid #333", paddingBottom: 3, paddingLeft: 4, paddingRight: 4 }}>
+        <span style={{ borderBottom: "0.07em solid #333", paddingBottom: "0.14em", paddingLeft: "0.18em", paddingRight: "0.18em" }}>
           {numerator}
         </span>
-        <span style={{ paddingTop: 3 }}>{denominator}</span>
+        <span style={{ paddingTop: "0.14em" }}>{denominator}</span>
       </span>
-      <span style={{ fontSize: 26 }}>)</span>
+      <span style={{ fontSize: "1.18em" }}>)</span>
     </div>
   );
 }

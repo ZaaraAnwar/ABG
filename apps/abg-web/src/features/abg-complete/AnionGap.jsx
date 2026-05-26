@@ -6,13 +6,17 @@ const NORMAL_ALBUMIN = 3.5;
 export default function AnionGap() {
   const [na, setNa] = useState(140);
   const [cl, setCl] = useState(110);
-  const [hco3, setHco3] = useState(7);
+  const [hco3, setHco3] = useState(9);
   const [albumin, setAlbumin] = useState(3.5);
 
   // ── ALL ORIGINAL LOGIC UNTOUCHED ──────────────────────────────────────────
   const ag = na - (cl + hco3);
   const correctedAG =
-    albumin >= NORMAL_ALBUMIN ? "NA" : ag + 2.5 * (NORMAL_ALBUMIN - albumin);
+    albumin === 0
+      ? ag
+      : albumin >= NORMAL_ALBUMIN
+        ? "NA"
+        : ag + 2.5 * (NORMAL_ALBUMIN - albumin);
 
   const status = useMemo(() => {
     if (ag < 8) return { label: "Low Anion Gap", color: "#245576" };
@@ -54,6 +58,16 @@ export default function AnionGap() {
           width: 200px;
           text-align: center;
           flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .ag-albumin-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
         }
 
         /* Graph area */
@@ -101,7 +115,16 @@ export default function AnionGap() {
             align-items: center;
           }
 
-          .ag-albumin-panel { width: 100%; }
+          .ag-albumin-panel {
+            width: 100%;
+            flex-direction: row;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 60px;
+          }
+          .ag-albumin-col {
+            flex: 1;
+          }
 
           /* Shrink graph height and gap on smaller screens */
           .ag-graph {
@@ -132,92 +155,98 @@ export default function AnionGap() {
         <div className="ag-content">
           {/* Left: Albumin Controls — structure identical to original */}
           <div className="ag-albumin-panel">
-            <div
-              style={{
-                fontWeight: 700,
-                fontSize: 16,
-                color: "#333",
-                marginBottom: 12,
-              }}
-            >
-              Serum Albumin
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#f0f2f5",
-                borderRadius: 12,
-                padding: "4px",
-                border: "1px solid #ddd",
-                width: 120,
-                margin: "0 auto 24px",
-              }}
-            >
-              <button
-                onClick={() =>
-                  setAlbumin((v) =>
-                    Math.max(0, Math.round((v - 0.5) * 10) / 10),
-                  )
-                }
+            <div className="ag-albumin-col">
+              <div
                 style={{
-                  width: 32,
-                  height: 32,
-                  border: "none",
-                  background: "none",
-                  fontSize: 20,
-                  cursor: "pointer",
-                  color: "#666",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  color: "#333",
+                  marginBottom: 12,
                 }}
               >
-                −
-              </button>
-              <div style={{ flex: 1, fontWeight: 700, fontSize: 16 }}>
-                {albumin.toFixed(1)}
+                Serum Albumin
               </div>
-              <button
-                onClick={() =>
-                  setAlbumin((v) =>
-                    Math.min(8.0, Math.round((v + 0.5) * 10) / 10),
-                  )
-                }
+              <div
                 style={{
-                  width: 32,
-                  height: 32,
-                  border: "none",
-                  background: "none",
-                  fontSize: 20,
-                  cursor: "pointer",
-                  color: "#666",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#f0f2f5",
+                  borderRadius: 12,
+                  padding: "4px",
+                  border: "1px solid #ddd",
+                  width: 120,
+                  margin: "0 auto",
                 }}
               >
-                +
-              </button>
+                <button
+                  onClick={() =>
+                    setAlbumin((v) =>
+                      Math.max(0, Math.round((v - 0.5) * 10) / 10),
+                    )
+                  }
+                  style={{
+                    width: 32,
+                    height: 32,
+                    border: "none",
+                    background: "none",
+                    fontSize: 20,
+                    cursor: "pointer",
+                    color: "#666",
+                  }}
+                >
+                  −
+                </button>
+                <div style={{ flex: 1, fontWeight: 700, fontSize: 16 }}>
+                  {albumin.toFixed(1)}
+                </div>
+                <button
+                  onClick={() =>
+                    setAlbumin((v) =>
+                      Math.min(8.0, Math.round((v + 0.5) * 10) / 10),
+                    )
+                  }
+                  style={{
+                    width: 32,
+                    height: 32,
+                    border: "none",
+                    background: "none",
+                    fontSize: 20,
+                    cursor: "pointer",
+                    color: "#666",
+                  }}
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#444",
-                marginBottom: 8,
-              }}
-            >
-              Corrected AG for Serum Albumin
-            </div>
-            <div
-              style={{
-                background: "#bdbdbd",
-                color: "#333",
-                padding: "8px 24px",
-                borderRadius: 4,
-                display: "inline-block",
-                fontWeight: 700,
-                fontSize: 16,
-              }}
-            >
-              {typeof correctedAG === "number" ? correctedAG.toFixed(1) : correctedAG}
+            <div className="ag-albumin-col">
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#444",
+                  marginBottom: 8,
+                }}
+              >
+                Corrected AG for Serum Albumin
+              </div>
+              <div
+                style={{
+                  background: "#bdbdbd",
+                  color: "#333",
+                  padding: "8px 24px",
+                  borderRadius: 4,
+                  display: "inline-block",
+                  fontWeight: 700,
+                  fontSize: 16,
+                }}
+              >
+                {typeof correctedAG === "number"
+                  ? correctedAG.toFixed(2)
+                  : correctedAG}
+              </div>
             </div>
           </div>
 
@@ -438,8 +467,8 @@ export default function AnionGap() {
             </label>
             <input
               type="range"
-              min="60"
-              max="140"
+              min="0"
+              max={na - 9}
               value={cl}
               onChange={(e) => setCl(parseInt(e.target.value))}
               style={{ width: "100%" }}
@@ -453,7 +482,7 @@ export default function AnionGap() {
             </label>
             <input
               type="range"
-              min="5"
+              min="9"
               max="50"
               value={hco3}
               onChange={(e) => setHco3(parseInt(e.target.value))}

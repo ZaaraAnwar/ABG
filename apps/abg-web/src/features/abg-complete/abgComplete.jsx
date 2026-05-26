@@ -416,11 +416,13 @@ export default function ABGTutor() {
     setPreviousUnit(unit);
   }, [unit, previousUnit, paco2Cfg.normal, pao2Cfg.normal]);
 
-  /* close popup when user changes PaCO2 back to normal */
+  /* close popup when user changes PaCO2 and pH back to normal */
   useEffect(() => {
-    if (Math.abs(paco2 - paco2Cfg.normal) <= 0.05) setPopupOpen(false);
-  }, [paco2, paco2Cfg.normal]);
-
+    const paco2Normal = Math.abs(paco2 - paco2Cfg.normal) <= 0.05;
+    const phNormal = Math.abs(ph - 7.4) <= 0.01;
+    if (paco2Normal && phNormal) setPopupOpen(false);
+  }, [paco2, paco2Cfg.normal, ph]);
+ 
   const paco2Mmhg = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
 
   const hco3 = useMemo(
@@ -433,18 +435,8 @@ export default function ABGTutor() {
   );
   const diagnosis = useMemo(() => diagnose(ph, paco2Mmhg), [ph, paco2Mmhg]);
 
-  const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05;
+  const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05 || Math.abs(ph - 7.4) > 0.01;
   const extTarget = useMemo(() => {
-    /*
-     * pH-dependent HCO3 thresholds via piecewise linear interpolation.
-     *
-     * Anion Gap upper HCO3 calibration:
-     *   pH 6.80→34, 7.00→32, 7.26→25, 7.40→10, 7.60→8
-     *
-     * Metabolic Alkalosis lower HCO3 calibration:
-     *   pH <7.35 → disabled (acidemia)
-     *   pH 7.40→26, 7.60→21, 7.85→19
-     */
     const piecewise = (x, pts) => {
       if (x <= pts[0][0]) return pts[0][1];
       for (let i = 0; i < pts.length - 1; i++) {
@@ -456,22 +448,82 @@ export default function ABGTutor() {
       return pts[pts.length - 1][1];
     };
 
-    const agMax = piecewise(ph, [
-      [6.80, 34], [7.00, 32], [7.26, 25], [7.40, 10], [7.60, 8],
-    ]);
+    /* Compare in native unit to avoid kPa→mmHg rounding errors */
+    const isKpa = unit === "kPa";
+    const co2 = isKpa ? paco2 : paco2Mmhg;
+    const co2Min = isKpa ? 0.7 : 5;
 
-    const maDisabled = ph < 7.35;
-    const maMin = piecewise(ph, [
-      [7.35, 26], [7.40, 26], [7.60, 21], [7.85, 19],
-    ]);
+    /* ── Anion Gap upper PaCO2 boundary ────────────────────────────────── */
+    const agUpper = isKpa
+      ? piecewise(ph, [
+          [6.80, 30.0],
+          [6.85, 27.0],
+          [6.90, 24.1],
+          [6.95, 21.1],
+          [7.00, 18.1],
+          [7.02, 16.9],
+          [7.05, 15.5],
+          [7.10, 13.2],
+          [7.15, 10.9],
+          [7.18, 10.2],
+          [7.20,  9.7],
+          [7.25,  8.4],
+          [7.29,  7.4],
+          [7.30,  7.2],
+          [7.33,  6.4],
+          [7.35,  5.9],
+          [7.37,  5.3],
+          [7.40,  4.5],
+          [7.45,  3.1],
+          [7.48,  2.3],
+          [7.50,  2.2],
+          [7.55,  1.8],
+          [7.60,  1.4],
+          [7.65,  1.1],
+          [7.70,  0.7],
+          [7.75,  0.5],
+          [7.80,  0.2],
+          [7.85,  0.0],
+        ])
+      : piecewise(ph, [
+          [6.80, 160], [6.85, 151], [6.90, 141], [6.95, 132],
+          [7.00, 122], [7.05, 113], [7.10,  73], [7.15,  74],
+          [7.18,  74], [7.20,  70], [7.25,  61], [7.29,  54],
+          [7.30,  52], [7.35,  40], [7.37,  30], [7.40,  16],
+          [7.45,  16], [7.50,  15], [7.55,  13], [7.60,  11],
+          [7.65,   9], [7.70,   6], [7.75,   4], [7.80,   2],
+          [7.85,   0],
+        ]);
 
-    const h = hco3;
+    /* ── Metabolic Alkalosis lower PaCO2 boundary ─────────────────────── */
+    const maLower = isKpa
+      ? piecewise(ph, [
+          [7.35, 8.7],
+          [7.37, 7.6],
+          [7.40, 5.9],
+          [7.45, 4.8],
+          [7.48, 4.2],
+          [7.50, 4.0],
+          [7.55, 3.6],
+          [7.60, 3.1],
+          [7.65, 2.7],
+          [7.70, 2.2],
+          [7.75, 2.0],
+          [7.80, 1.7],
+          [7.83, 1.6],
+          [7.85, 1.5],
+        ])
+      : piecewise(ph, [
+          [7.35, 65], [7.37, 57], [7.40, 44], [7.45, 37],
+          [7.50, 30], [7.55, 27], [7.60, 25], [7.65, 22],
+          [7.70, 19], [7.75, 16], [7.80, 14], [7.85, 11],
+        ]);
 
-    if (h >= 1 && h <= agMax) {
+    if (co2 >= co2Min && co2 <= agUpper) {
       return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
     }
 
-    if (!maDisabled && h >= maMin) {
+    if (ph >= 7.35 && co2 >= maLower) {
       return {
         label: "Metabolic Alkalosis",
         url: "https://abg.leadows.com/metabolic-alkalosis/",
@@ -479,7 +531,7 @@ export default function ABGTutor() {
     }
 
     return null;
-  }, [ph, hco3]);
+  }, [ph, paco2, paco2Mmhg, unit]);
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
   const flowUrl = isAcidic
@@ -712,7 +764,7 @@ export default function ABGTutor() {
             {/* Interpretation box */}
             <div
               className="interp-box"
-              style={{ visibility: paco2 <= 0.7 ? "hidden" : "visible" }}
+              style={{ visibility: paco2 <= (unit === "kPa" ? 0.7 : 5) ? "hidden" : "visible" }}
             >
               <h2>Interpretation</h2>
               <div className="interp-body">

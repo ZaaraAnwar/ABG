@@ -227,7 +227,7 @@ export default function ABGGraph() {
   const paco2ForPlot = paco2;
   const isKpa = unit === "kPa";
 
-  const yTicks = isKpa ? Y_TICKS_KPA : Y_TICKS_MMHG;
+  const yTicks = Y_TICKS_MMHG;
 
   const displayY = (mmHgValue) =>
     isKpa ? mmHgValue / MMHG_PER_KPA : mmHgValue;
@@ -237,8 +237,8 @@ export default function ABGGraph() {
     return mapY(mmHgValue);
   };
   const title = useMemo(
-    () => interpret(ph, paco2ForDiagnosis),
-    [ph, paco2ForDiagnosis],
+    () => (paco2 === 0 ? "" : interpret(ph, paco2ForDiagnosis)),
+    [ph, paco2ForDiagnosis, paco2],
   );
   const regions = useMemo(() => buildRegions(), []);
 
@@ -397,19 +397,19 @@ export default function ABGGraph() {
               <line
                 x1="0"
                 x2={SVG_W}
-                y1={mapDisplayY(val)}
-                y2={mapDisplayY(val)}
+                y1={mapY(val)}
+                y2={mapY(val)}
                 stroke="#b0b0b0"
                 strokeWidth="1"
               />
               <text
                 x="-12"
-                y={mapDisplayY(val) + 5}
+                y={mapY(val) + 5}
                 fontSize="16"
                 fill="#000"
                 textAnchor="end"
               >
-                {isKpa ? val.toFixed(0) : val}
+                {val}
               </text>
             </g>
           ))}
