@@ -1373,14 +1373,17 @@ function Aagradient() {
                           >
                             <td
                               colSpan={2}
-                              style={{
-                                padding: "0.75rem 0",
-                                textAlign: "center",
-                                fontWeight: "bold",
-                                fontSize: "1rem",
-                              }}
+                              style={{ padding: "0.75rem 0" }}
                             >
-                              {calculatedPAO2.toFixed(2)} - {paO2}
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                                  {calculatedPAO2.toFixed(2)}
+                                </span>
+                                <span style={{ padding: "0 0.25rem", color: "#9ca3af", fontSize: "0.875rem" }}>−</span>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                                  {paO2}
+                                </span>
+                              </div>
                             </td>
                             <td
                               style={{
@@ -1437,14 +1440,17 @@ function Aagradient() {
                           >
                             <td
                               colSpan={2}
-                              style={{
-                                padding: "0.75rem 0",
-                                textAlign: "center",
-                                fontWeight: "bold",
-                                fontSize: "1rem",
-                              }}
+                              style={{ padding: "0.75rem 0" }}
                             >
-                              {paO2} / {(fiO2 / 100).toFixed(2)}
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                                  {paO2}
+                                </span>
+                                <span style={{ padding: "0 0.25rem", color: "#9ca3af", fontSize: "0.875rem" }}>÷</span>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
+                                  {(fiO2 / 100).toFixed(2)}
+                                </span>
+                              </div>
                             </td>
                             <td
                               style={{

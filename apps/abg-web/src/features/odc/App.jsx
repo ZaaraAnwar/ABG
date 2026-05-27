@@ -1129,7 +1129,7 @@ export default function App() {
               In this app ENTER stroke volume in ml. and with values of saturation, PaO₂ and Hb% already entered in the app, this app will calculate the DO₂ (ml/min).
               <br/><br/>
               The delivery of oxygen to the tissues per minute can be calculated as follows:
-              <br/><br/>
+              <br/><bzxr/>
               <strong>Step 1:</strong> Calculate amount of oxygen/100 ml of blood (CaO₂).
               <br/>[(1.39 × Hb × SaO₂) / 100 + (0.003 × PaO₂)]
               <br/><br/>
