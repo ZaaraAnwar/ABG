@@ -36,12 +36,19 @@ function calcAA(pao2, fio2, paco2, unit) {
   const PH2O = 47;
   const RQ = 0.8;
 
-  const pao2Mmhg = unit === "kPa" ? kpaToMmhg(pao2) : pao2;
-  const paco2Mmhg = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
+  const pao2Mmhg = unit === "kPa" ? pao2 * 7.5 : pao2;
+  const paco2Mmhg = unit === "kPa" ? paco2 * 7.5 : paco2;
 
   const PAO2 = fio2 * (PATM - PH2O) - paco2Mmhg / RQ;
-
-  return Math.trunc(PAO2 - pao2Mmhg);
+  const aa = PAO2 - pao2Mmhg;
+  console.log("AA DEBUG", {
+    PAO2,
+    pao2Mmhg,
+    aa,
+    paco2,
+    fio2,
+  });
+    return aa < 0 ? Math.floor(aa) : Math.round(aa);
 }
 
 /* --- Diagnosis ------------------------------------------------------------- */
@@ -71,8 +78,8 @@ function calcAA(pao2, fio2, paco2, unit) {
     Alkalemia + normal CO2             → Metabolic Alkalosis
     Alkalemia + high CO2               → Metabolic Alkalosis and Respiratory Acidosis
 */
-function diagnose(ph, paco2Mmhg) {
-  return { primary: null, secondary: interpret(ph, paco2Mmhg) };
+function diagnose(ph, paco2Mmhg, hco3) {
+  return { primary: null, secondary: interpret(ph, paco2Mmhg, hco3) };
 }
 
 /* --- Unit configs ---------------------------------------------------------- */
@@ -422,7 +429,7 @@ export default function ABGTutor() {
     const phNormal = Math.abs(ph - 7.4) <= 0.01;
     if (paco2Normal && phNormal) setPopupOpen(false);
   }, [paco2, paco2Cfg.normal, ph]);
- 
+
   const paco2Mmhg = unit === "kPa" ? kpaToMmhg(paco2) : paco2;
 
   const hco3 = useMemo(
@@ -433,15 +440,19 @@ export default function ABGTutor() {
     () => calcAA(pao2, fio2, paco2, unit),
     [pao2, fio2, paco2, unit],
   );
-  const diagnosis = useMemo(() => diagnose(ph, paco2Mmhg), [ph, paco2Mmhg]);
-
-  const isChanged = Math.abs(paco2 - paco2Cfg.normal) > 0.05 || Math.abs(ph - 7.4) > 0.01;
+  const diagnosis = useMemo(
+    () => diagnose(ph, paco2Mmhg, hco3),
+    [ph, paco2Mmhg, hco3],
+  );
+  const isChanged =
+    Math.abs(paco2 - paco2Cfg.normal) > 0.05 || Math.abs(ph - 7.4) > 0.01;
   const extTarget = useMemo(() => {
     const piecewise = (x, pts) => {
       if (x <= pts[0][0]) return pts[0][1];
       for (let i = 0; i < pts.length - 1; i++) {
         if (x <= pts[i + 1][0]) {
-          const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+          const [x0, y0] = pts[i],
+            [x1, y1] = pts[i + 1];
           return y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
         }
       }
@@ -456,43 +467,61 @@ export default function ABGTutor() {
     /* ── Anion Gap upper PaCO2 boundary ────────────────────────────────── */
     const agUpper = isKpa
       ? piecewise(ph, [
-          [6.80, 30.0],
+          [6.8, 30.0],
           [6.85, 27.0],
-          [6.90, 24.1],
+          [6.9, 24.1],
           [6.95, 21.1],
-          [7.00, 18.1],
+          [7.0, 18.1],
           [7.02, 16.9],
           [7.05, 15.5],
-          [7.10, 13.2],
+          [7.1, 13.2],
           [7.15, 10.9],
           [7.18, 10.2],
-          [7.20,  9.7],
-          [7.25,  8.4],
-          [7.29,  7.4],
-          [7.30,  7.2],
-          [7.33,  6.4],
-          [7.35,  5.9],
-          [7.37,  5.3],
-          [7.40,  4.5],
-          [7.45,  3.1],
-          [7.48,  2.3],
-          [7.50,  2.2],
-          [7.55,  1.8],
-          [7.60,  1.4],
-          [7.65,  1.1],
-          [7.70,  0.7],
-          [7.75,  0.5],
-          [7.80,  0.2],
-          [7.85,  0.0],
+          [7.2, 9.7],
+          [7.25, 8.4],
+          [7.29, 7.4],
+          [7.3, 7.2],
+          [7.33, 6.4],
+          [7.35, 5.9],
+          [7.37, 5.3],
+          [7.4, 4.5],
+          [7.45, 3.1],
+          [7.48, 2.3],
+          [7.5, 2.2],
+          [7.55, 1.8],
+          [7.6, 1.4],
+          [7.65, 1.1],
+          [7.7, 0.7],
+          [7.75, 0.5],
+          [7.8, 0.2],
+          [7.85, 0.0],
         ])
       : piecewise(ph, [
-          [6.80, 160], [6.85, 151], [6.90, 141], [6.95, 132],
-          [7.00, 122], [7.05, 113], [7.10,  73], [7.15,  74],
-          [7.18,  74], [7.20,  70], [7.25,  61], [7.29,  54],
-          [7.30,  52], [7.35,  40], [7.37,  30], [7.40,  16],
-          [7.45,  16], [7.50,  15], [7.55,  13], [7.60,  11],
-          [7.65,   9], [7.70,   6], [7.75,   4], [7.80,   2],
-          [7.85,   0],
+          [6.8, 160],
+          [6.85, 151],
+          [6.9, 141],
+          [6.95, 132],
+          [7.0, 122],
+          [7.05, 113],
+          [7.1, 73],
+          [7.15, 74],
+          [7.18, 74],
+          [7.2, 70],
+          [7.25, 61],
+          [7.29, 54],
+          [7.3, 52],
+          [7.35, 40],
+          [7.37, 30],
+          [7.4, 16],
+          [7.45, 16],
+          [7.5, 15],
+          [7.55, 13],
+          [7.6, 11],
+          [7.65, 9],
+          [7.7, 6],
+          [7.75, 4],
+          [7.8, 2],
+          [7.85, 0],
         ]);
 
     /* ── Metabolic Alkalosis lower PaCO2 boundary ─────────────────────── */
@@ -500,23 +529,32 @@ export default function ABGTutor() {
       ? piecewise(ph, [
           [7.35, 8.7],
           [7.37, 7.6],
-          [7.40, 5.9],
+          [7.4, 5.9],
           [7.45, 4.8],
           [7.48, 4.2],
-          [7.50, 4.0],
+          [7.5, 4.0],
           [7.55, 3.6],
-          [7.60, 3.1],
+          [7.6, 3.1],
           [7.65, 2.7],
-          [7.70, 2.2],
+          [7.7, 2.2],
           [7.75, 2.0],
-          [7.80, 1.7],
+          [7.8, 1.7],
           [7.83, 1.6],
           [7.85, 1.5],
         ])
       : piecewise(ph, [
-          [7.35, 65], [7.37, 57], [7.40, 44], [7.45, 37],
-          [7.50, 30], [7.55, 27], [7.60, 25], [7.65, 22],
-          [7.70, 19], [7.75, 16], [7.80, 14], [7.85, 11],
+          [7.35, 65],
+          [7.37, 57],
+          [7.4, 44],
+          [7.45, 37],
+          [7.5, 30],
+          [7.55, 27],
+          [7.6, 25],
+          [7.65, 22],
+          [7.7, 19],
+          [7.75, 16],
+          [7.8, 14],
+          [7.85, 11],
         ]);
 
     if (co2 >= co2Min && co2 <= agUpper) {
@@ -764,7 +802,10 @@ export default function ABGTutor() {
             {/* Interpretation box */}
             <div
               className="interp-box"
-              style={{ visibility: paco2 <= (unit === "kPa" ? 0.7 : 5) ? "hidden" : "visible" }}
+              style={{
+                visibility:
+                  paco2 <= (unit === "kPa" ? 0.7 : 5) ? "hidden" : "visible",
+              }}
             >
               <h2>Interpretation</h2>
               <div className="interp-body">

@@ -46,143 +46,122 @@ export function mapY(pco2) {
 //   return "Mixed Disorder";
 // }
 
-export function interpret(ph, paco2) {
-  const hco3 = hco3FromPhPco2(ph, paco2);
+export function interpret(ph, paco2, hco3Input = null) {
+  const hco3 = hco3Input ?? hco3FromPhPco2(ph, paco2);
 
   const acidemia = ph < 7.35;
   const alkalemia = ph > 7.45;
   const normalPh = !acidemia && !alkalemia;
 
-  const within = (value, low, high) => value >= low && value <= high;
-  const near = (value, target, tol) => Math.abs(value - target) <= tol;
+  const lowCO2 = paco2 < 35;
+  const highCO2 = paco2 > 45;
+  const normalCO2 = !lowCO2 && !highCO2;
 
+  const lowHCO3 = hco3 < 22;
+  const highHCO3 = hco3 > 26;
+  const normalHCO3 = !lowHCO3 && !highHCO3;
 
-
-  // Expected compensation formulas
-  const expectedWinter = 1.5 * hco3 + 8;         // metabolic acidosis
-  const expectedMetAlk = 0.7 * hco3 + 20;        // metabolic alkalosis
-
-  const acuteRespAcidHCO3 = 24 + ((paco2 - 40) / 10) * 1;
-  const chronicRespAcidHCO3 = 24 + ((paco2 - 40) / 10) * 4;
-
-  const acuteRespAlkHCO3 = 24 - ((40 - paco2) / 10) * 2;
-  const chronicRespAlkHCO3 = 24 - ((40 - paco2) / 10) * 4.5;
-
-  // 1) Abnormal pH: decide primary disorder by direction of pH
-  if (acidemia) {
-    // Primary respiratory acidosis
-    if (paco2 > 45) {
-      const isAcute = near(hco3, acuteRespAcidHCO3, 2);
-      const isChronic = near(hco3, chronicRespAcidHCO3, 3);
-      
-      if (hco3 < acuteRespAcidHCO3 - 2) {
-        return "Respiratory Acidosis and\nMetabolic Acidosis";
-      }
-      if (hco3 > chronicRespAcidHCO3 + 3) {
-        return "Respiratory Acidosis and\nMetabolic Alkalosis";
-      }
-      if (isAcute) {
-        return "Acute Respiratory Acidosis";
-      }
-      if (isChronic) {
-        return "Chronic Respiratory Acidosis";
-      }
-      // Between acute and chronic
-      return "Partially Compensated Respiratory Acidosis";
+  if (normalPh) {
+    if (paco2 > 40 && normalHCO3) {
+      return "Compensated Respiratory Acidosis";
     }
 
-    // Primary metabolic acidosis
-    if (hco3 < 22) {
-      if (within(paco2, expectedWinter - 2, expectedWinter + 2)) {
-        return "Metabolic Acidosis";
+    if (paco2 < 40 && normalHCO3) {
+      return "Compensated Respiratory Alkalosis";
+    }
+
+    if (normalCO2 && normalHCO3) {
+      return "Normal";
+    }
+
+    if (lowCO2) {
+      return "Compensated Respiratory Alkalosis";
+    }
+
+    if (highCO2 && highHCO3) {
+      return "Metabolic Alkalosis and\nRespiratory Acidosis";
+    }
+
+    if (highCO2 && normalHCO3) {
+      return "Compensated Respiratory Acidosis";
+    }
+
+    return "Mixed Disorder";
+  }
+  if (acidemia) {
+    if (highCO2 && highHCO3) {
+      const expectedAcuteHCO3 = 24 + ((paco2 - 40) / 10) * 1;
+
+      if (hco3 < expectedAcuteHCO3 - 1) {
+        return "Respiratory Acidosis and\nMetabolic Acidosis";
       }
-      if (paco2 > expectedWinter + 2) {
-        return "Metabolic Acidosis and\nRespiratory Acidosis";
+
+      return "Acute Respiratory Acidosis";
+    }
+
+    if (highCO2 && lowHCO3) {
+      return "Respiratory Acidosis and\nMetabolic Acidosis";
+    }
+
+    if (highCO2 && normalHCO3) {
+      const expectedAcuteHCO3 = 24 + ((paco2 - 40) / 10) * 1;
+
+      if (hco3 < expectedAcuteHCO3) {
+        return "Respiratory Acidosis and\nMetabolic Acidosis";
       }
-      if (paco2 < expectedWinter - 2) {
-        return "Metabolic Acidosis and\nRespiratory Alkalosis";
-      }
+
+      return "Respiratory Acidosis";
+    }
+
+    if (normalCO2) {
       return "Metabolic Acidosis";
+    }
+
+    if (lowCO2) {
+      return "Partially Compensated Metabolic Acidosis";
     }
 
     return "Mixed Disorder";
   }
 
   if (alkalemia) {
-    // Primary respiratory alkalosis
-    if (paco2 < 35) {
-      const isAcute = near(hco3, acuteRespAlkHCO3, 2);
-      const isChronic = near(hco3, chronicRespAlkHCO3, 3);
-      
-      if (hco3 > acuteRespAlkHCO3 + 2) {
-        return "Respiratory Alkalosis and\nMetabolic Alkalosis";
-      }
-      if (hco3 < chronicRespAlkHCO3 - 3) {
+    if (lowCO2 && lowHCO3) {
+      const expectedChronicHCO3 = 24 - ((40 - paco2) / 10) * 5;
+
+      if (hco3 <= expectedChronicHCO3) {
         return "Respiratory Alkalosis and\nMetabolic Acidosis";
       }
-      if (isAcute) {
-        return "Acute Respiratory Alkalosis";
-      }
-      if (isChronic) {
-        return "Chronic Respiratory Alkalosis";
-      }
+
       return "Partially Compensated Respiratory Alkalosis";
     }
 
-    // Primary metabolic alkalosis
-    if (hco3 > 26) {
-      if (within(paco2, expectedMetAlk - 5, expectedMetAlk + 5)) {
-        return "Metabolic Alkalosis";
-      }
-      if (paco2 > expectedMetAlk + 5) {
-        return "Metabolic Alkalosis and\nRespiratory Acidosis";
-      }
-      if (paco2 < expectedMetAlk - 5) {
+    if (highHCO3) {
+      const expectedPaco2 = 0.7 * hco3 + 20;
+
+      if (paco2 < expectedPaco2 - 3) {
         return "Metabolic Alkalosis and\nRespiratory Alkalosis";
       }
+
+      if (paco2 > expectedPaco2 + 5) {
+        return "Metabolic Alkalosis and\nRespiratory Acidosis";
+      }
+
       return "Metabolic Alkalosis";
     }
 
+    if (lowCO2) {
+      return "Respiratory Alkalosis";
+    }
+
+    if (normalCO2) {
+      return "Metabolic Alkalosis";
+    }
+
+    if (highCO2) {
+      return "Metabolic Alkalosis and\nRespiratory Acidosis";
+    }
+
     return "Mixed Disorder";
-  }
-
-  // 2) Normal pH: likely fully compensated or mixed
-  if (normalPh) {
-    if (near(paco2, 40, 0.5) && near(hco3, 24, 1)) {
-      return "Normal";
-    }
-
-    if (paco2 > 40) {
-      if (hco3 > 26) {
-        const expectedMetAlk = 0.7 * hco3 + 20;
-        if (paco2 > expectedMetAlk + 5) {
-          return "Metabolic Alkalosis and\nRespiratory Acidosis";
-        }
-        return "Compensated Metabolic Alkalosis";
-      } else {
-        const chronicRespAcidHCO3 = 24 + ((paco2 - 40) / 10) * 4;
-        if (hco3 > chronicRespAcidHCO3 + 3) {
-           return "Respiratory Acidosis and\nMetabolic Alkalosis";
-        }
-        return "Compensated Respiratory Acidosis";
-      }
-    }
-
-    if (paco2 < 40) {
-      if (hco3 < 22) {
-        const expectedWinter = 1.5 * hco3 + 8;
-        if (paco2 < expectedWinter - 2) {
-          return "Respiratory Alkalosis and\nMetabolic Acidosis";
-        }
-        return "Compensated Metabolic Acidosis";
-      } else {
-        const chronicRespAlkHCO3 = 24 - ((40 - paco2) / 10) * 4.5;
-        if (hco3 < chronicRespAlkHCO3 - 3) {
-          return "Respiratory Alkalosis and\nMetabolic Acidosis";
-        }
-        return "Compensated Respiratory Alkalosis";
-      }
-    }
   }
 
   return "Mixed Disorder";
