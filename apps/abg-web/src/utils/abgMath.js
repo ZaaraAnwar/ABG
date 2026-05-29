@@ -62,6 +62,14 @@ export function interpret(ph, paco2, hco3Input = null) {
   const normalHCO3 = !lowHCO3 && !highHCO3;
 
   if (normalPh) {
+    if (hco3 <= 22 && paco2 <= 40) {
+      return "Compensated Metabolic Acidosis";
+    }
+
+    if (hco3 >= 26 && paco2 >= 40) {
+      return "Compensated Metabolic Alkalosis";
+    }
+
     if (paco2 > 40 && normalHCO3) {
       return "Compensated Respiratory Acidosis";
     }
