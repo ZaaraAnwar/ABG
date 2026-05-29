@@ -132,7 +132,7 @@ export function interpret(ph, paco2, hco3Input = null) {
         return "Metabolic Acidosis and\nRespiratory Alkalosis";
       }
 
-      return "Partially Compensated Metabolic Acidosis";
+      return "Metabolic Acidosis";
     }
 
     if (lowCO2) {
