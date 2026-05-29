@@ -10,7 +10,8 @@ Error generating stack: `+e.message+`
 Respiratory Acidosis`:c&&f?`Compensated Respiratory Acidosis`:`Mixed Disorder`;if(i)return c&&d?r<24+(t-40)/10*1-1?`Respiratory Acidosis and
 Metabolic Acidosis`:`Acute Respiratory Acidosis`:c&&u?`Respiratory Acidosis and
 Metabolic Acidosis`:c&&f?r<24+(t-40)/10*1?`Respiratory Acidosis and
-Metabolic Acidosis`:`Respiratory Acidosis`:l?`Metabolic Acidosis`:s?`Partially Compensated Metabolic Acidosis`:`Mixed Disorder`;if(a){if(s&&u)return r<=24-(40-t)/10*5?`Respiratory Alkalosis and
+Metabolic Acidosis`:`Respiratory Acidosis`:l?`Metabolic Acidosis`:s&&u?t<1.5*r+8-2?`Metabolic Acidosis and
+Respiratory Alkalosis`:`Partially Compensated Metabolic Acidosis`:s?`Partially Compensated Metabolic Acidosis`:`Mixed Disorder`;if(a){if(s&&u)return r<=24-(40-t)/10*5?`Respiratory Alkalosis and
 Metabolic Acidosis`:`Partially Compensated Respiratory Alkalosis`;if(d){let e=.7*r+20;return t<e-3?`Metabolic Alkalosis and
 Respiratory Alkalosis`:t>e+5?`Metabolic Alkalosis and
 Respiratory Acidosis`:`Metabolic Alkalosis`}return s?`Respiratory Alkalosis`:l?`Metabolic Alkalosis`:c?`Metabolic Alkalosis and

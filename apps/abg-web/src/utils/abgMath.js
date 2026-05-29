@@ -125,6 +125,16 @@ export function interpret(ph, paco2, hco3Input = null) {
       return "Metabolic Acidosis";
     }
 
+    if (lowCO2 && lowHCO3) {
+      const expectedPaco2 = 1.5 * hco3 + 8;
+
+      if (paco2 < expectedPaco2 - 2) {
+        return "Metabolic Acidosis and\nRespiratory Alkalosis";
+      }
+
+      return "Partially Compensated Metabolic Acidosis";
+    }
+
     if (lowCO2) {
       return "Partially Compensated Metabolic Acidosis";
     }
