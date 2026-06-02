@@ -569,7 +569,7 @@ export default function DynamicHHEquation() {
           <div style={{ fontSize: 34, color: "#1a1a2e", fontWeight: 500 }}>
             {displayedPh.toFixed(1)}
           </div>
-          <div style={{ fontSize: 12, color: "#aaa", marginTop: 6 }}>
+          <div style={{ fontSize: 16, color: "#000000ff", marginTop: 6 }}>
             pH = 6.1 + log₁₀(HCO₃⁻ / ({CO2_FACTOR} × PaCO₂))
           </div>
         </div>

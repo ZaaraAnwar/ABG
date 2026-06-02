@@ -1252,8 +1252,8 @@ export default function App() {
               }}
             >
               {[
-                ["Active PO₂", `${activePO2.toFixed(1)} mmHg`],
-                ["Hb Saturation", `${activeSat.toFixed(1)}%`],
+                ["Active PO₂", `${activePO2.toFixed(0)} mmHg`],
+                ["Hb Saturation", `${activeSat.toFixed(0)}%`],
                 ["P 50", `${p50} mmHg`],
                 ["Cardiac Output", `${cardiacOutput.toFixed(2)} L/min`],
               ].map(([label, value]) => (

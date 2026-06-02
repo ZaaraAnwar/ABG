@@ -1,42 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import {
+  calculationUrinaryAnionGap,
+  getUrinaryAnionGapResult,
+  format2D,
+} from "../../utils/abgMath";
 
 export default function NormalAnionGap() {
   const [uNa, setUNa] = useState("");
   const [uK, setUK] = useState("");
   const [uCl, setUCl] = useState("");
+  // correctedAnionGap passed from parent context (8-12 range = Normal AG)
+  const [correctedAG, setCorrectedAG] = useState(10);
 
-  const calculateInterpretation = () => {
+  const interpretation = useMemo(() => {
     if (uNa === "" || uK === "" || uCl === "") return null;
     const na = parseFloat(uNa);
     const k = parseFloat(uK);
     const cl = parseFloat(uCl);
-    const uag = na + k - cl;
+    // Android: UAG = (Na + K) - Cl
+    const uag = calculationUrinaryAnionGap(na, cl, k);
+    // Android: uses correctedAG range 8-12 to gate interpretation
+    const resultText = getUrinaryAnionGapResult(uag, correctedAG);
 
-    if (uag > 0) {
-      return {
-        uag,
-        title: "Positive UAG (> 0)",
-        text: "RTA TYPE I OR TYPE IV",
-        color: "#d32f2f",
-      };
-    } else if (uag < 0) {
-      return {
-        uag,
-        title: "Negative UAG (< 0)",
-        text: "Evaluate for Proximal RTA or GI loss",
-        color: "#388e3c",
-      };
+    let color = "#f57c00";
+    let title = "";
+    if (uag < 0) {
+      color = "#388e3c";
+      title = "Negative UAG (< 0)";
+    } else if (uag > 0) {
+      color = "#d32f2f";
+      title = "Positive UAG (> 0)";
     } else {
-      return {
-        uag,
-        title: "Zero UAG",
-        text: "Zero UAG",
-        color: "#f57c00",
-      };
+      title = "Zero UAG";
     }
-  };
 
-  const interpretation = calculateInterpretation();
+    return {
+      uag,
+      title,
+      text: resultText === "NA" ? title : resultText,
+      color,
+    };
+  }, [uNa, uK, uCl, correctedAG]);
 
   return (
     <div

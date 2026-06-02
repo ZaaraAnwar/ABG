@@ -1281,7 +1281,7 @@ function Aagradient() {
                     >
                       <div
                         style={{
-                          fontSize: "1.125rem",
+                          fontSize: "2.125rem",
                           color: "#374151",
                           marginBottom: "0.5rem",
                         }}
@@ -1290,7 +1290,7 @@ function Aagradient() {
                       </div>
                       <div
                         style={{
-                          fontSize: "0.875rem",
+                          fontSize: "1rem",
                           color: "#4b5563",
                           lineHeight: "1.5",
                         }}

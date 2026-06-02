@@ -176,7 +176,7 @@ export default function UnderstandingPH() {
         style={{
           textAlign: "center",
           marginBottom: 6,
-          fontSize: 13,
+          fontSize: 16,
           color: isNormal ? "#4caf50" : ph < 7.35 ? "#ff1744" : "#2196f3",
           fontWeight: 500,
           flexShrink: 0,
@@ -344,8 +344,8 @@ export default function UnderstandingPH() {
       <div
         style={{
           textAlign: "center",
-          fontSize: 11,
-          color: "#bbb",
+          fontSize: 15,
+          color: "#7e7e7eff",
           marginTop: 4,
           flexShrink: 0,
         }}

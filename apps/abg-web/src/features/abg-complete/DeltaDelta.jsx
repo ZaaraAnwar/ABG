@@ -1,8 +1,16 @@
 import React, { useState, useMemo } from "react";
+import {
+  calculationDeltadelta,
+  getDeltadeltaResult,
+  calculationOsmolarGap,
+  getOsmolarGapResult,
+  round2Digit,
+  format2D,
+} from "../../utils/abgMath";
 
 export default function DeltaDelta() {
   // Inputs for Delta Delta (usually from previous steps)
-  const [ag, setAg] = useState(12);
+  const [correctedAG, setCorrectedAG] = useState(12);
   const [hco3, setHco3] = useState(24);
   const [na, setNa] = useState(140);
 
@@ -11,38 +19,33 @@ export default function DeltaDelta() {
   const [bun, setBun] = useState("");
   const [measuredOsm, setMeasuredOsm] = useState("");
 
-  // ─── Calculations ───────────────────────────────────────────────────────────
+  // ─── Calculations (Android Formula.java — exact port) ──────────────────────
 
-  // Delta Delta Ratio
-  const deltaDelta = useMemo(() => {
-    const deltaAG = ag - 12;
-    const deltaHCO3 = 24 - hco3;
-    if (deltaHCO3 === 0) return 0;
-    return deltaAG / deltaHCO3;
-  }, [ag, hco3]);
+  // Delta Delta: (correctedAG - 12) - (24 - calculatedHCO3)
+  const deltaDelta = useMemo(() =>
+    calculationDeltadelta(correctedAG, hco3),
+    [correctedAG, hco3]
+  );
+
+  // Delta Delta interpretation with ±5 thresholds and AG>12 gate
+  const ddInterpretation = useMemo(() =>
+    getDeltadeltaResult(deltaDelta, correctedAG),
+    [deltaDelta, correctedAG]
+  );
 
   // Osmolar Gap
-  const calculatedOsm = useMemo(() => {
-    if (!na) return 0;
-    const g = glucose ? Number(glucose) / 18 : 0;
-    const b = bun ? Number(bun) / 2.8 : 0;
-    return 2 * na + g + b;
-  }, [na, glucose, bun]);
-
   const osmolarGap = useMemo(() => {
-    if (!measuredOsm || !calculatedOsm) return 0;
-    return Number(measuredOsm) - calculatedOsm;
-  }, [measuredOsm, calculatedOsm]);
+    if (!measuredOsm || !na) return 0;
+    const g = glucose ? Number(glucose) : 0;
+    const b = bun ? Number(bun) : 0;
+    return calculationOsmolarGap(na, g, b, Number(measuredOsm));
+  }, [na, glucose, bun, measuredOsm]);
 
-  // ─── Interpretation ────────────────────────────────────────────────────────
-
-  const ddInterpretation = useMemo(() => {
-    if (deltaDelta < 0.4) return "Normal Anion Gap Metabolic Acidosis (NAGMA).";
-    if (deltaDelta < 0.8) return "Mixed NAGMA and HAGMA.";
-    if (deltaDelta <= 2.0)
-      return "Pure High Anion Gap Metabolic Acidosis (HAGMA).";
-    return "Mixed HAGMA and Metabolic Alkalosis.";
-  }, [deltaDelta]);
+  // Osmolar Gap result: "Toxic Alcohol" only if BOTH osmolarGap > 10 AND correctedAG > 12
+  const osmolarResult = useMemo(() =>
+    getOsmolarGapResult(osmolarGap, correctedAG),
+    [osmolarGap, correctedAG]
+  );
 
   return (
     <div
@@ -89,17 +92,16 @@ export default function DeltaDelta() {
             lineHeight: 1.5,
           }}
         >
-          High Anion Gap with Metabolic Acidosis as well as normal Anion Gap
-          Metabolic Acidosis
+         {ddInterpretation}
         </div>
         <div style={{ fontWeight: 600, fontSize: 16, color: "#000" }}>
-          Calculated Delta Delta = {deltaDelta.toFixed(1)}
+          Calculated Delta Delta = {round2Digit(deltaDelta)}
         </div>
       </div>
 
       {/* Patient Data (Hidden inputs for Delta-Delta context) */}
       <div style={{ display: "none" }}>
-        <input value={ag} onChange={(e) => setAg(Number(e.target.value))} />
+        <input value={correctedAG} onChange={(e) => setCorrectedAG(Number(e.target.value))} />
         <input value={hco3} onChange={(e) => setHco3(Number(e.target.value))} />
         <input value={na} onChange={(e) => setNa(Number(e.target.value))} />
       </div>
@@ -201,10 +203,10 @@ export default function DeltaDelta() {
           Interpretation
         </div>
         <div style={{ fontSize: 16, color: "#333", marginBottom: 8 }}>
-          {osmolarGap > 10 ? "Toxic alcohol" : "Within normal limit"}
+          {osmolarResult}
         </div>
         <div style={{ fontSize: 14, color: "#666" }}>
-          Calculated Osmolar Gap = {osmolarGap.toFixed(2)}
+          Calculated Osmolar Gap = {format2D(osmolarGap)}
         </div>
 
         {/* Home Flowchart Icon */}

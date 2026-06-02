@@ -6,7 +6,11 @@ import React, {
   useCallback,
 } from "react";
 import { usePressureUnit } from "../../context/PressureUnitContext";
-import { interpret } from "../../utils/abgMath";
+import {
+  interpret,
+  calculateCalculatedHCO3FromPH,
+  calculateAaDO2Gradient as calcAaDO2,
+} from "../../utils/abgMath";
 
 /* --- Constants ------------------------------------------------------------ */
 const SEA_ATM = 760;
@@ -18,11 +22,10 @@ const r1 = (v) => Math.round(v * 10) / 10;
 const r2 = (v) => Math.round(v * 100) / 100;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-/* --- Physics --------------------------------------------------------------- */
+/* --- Physics (Android H+ method) ------------------------------------------ */
 function calcHCO3(ph, paco2Mmhg) {
-  const hco3 = 0.0302 * paco2Mmhg * Math.pow(10, ph - 6.1);
-  if (Math.abs(ph - 7.4) < 0.01 && Math.abs(paco2Mmhg - 40) < 1) return 24;
-  return hco3;
+  // Android: H+ = 10^(9-pH), HCO3 = (PaCO2 × 24) / H+
+  return calculateCalculatedHCO3FromPH(ph, paco2Mmhg);
 }
 
 /* A/a Gradient = PAO2 - PaO2
@@ -32,54 +35,19 @@ function calcHCO3(ph, paco2Mmhg) {
      RQ   = 0.8 (respiratory quotient)
    All pressures converted to mmHg before calculation.                        */
 function calcAA(pao2, fio2, paco2, unit) {
-  const PATM = 760;
-  const PH2O = 47;
-  const RQ = 0.8;
-
   const pao2Mmhg = unit === "kPa" ? pao2 * 7.5 : pao2;
   const paco2Mmhg = unit === "kPa" ? paco2 * 7.5 : paco2;
 
-  const PAO2 = fio2 * (PATM - PH2O) - paco2Mmhg / RQ;
-  const aa = PAO2 - pao2Mmhg;
-  console.log("AA DEBUG", {
-    PAO2,
-    pao2Mmhg,
-    aa,
-    paco2,
-    fio2,
-  });
-    return aa < 0 ? Math.floor(aa) : Math.round(aa);
+  // Android: (FiO2 × 713) - (PaCO2 / 0.8) - PaO2
+  const aa = calcAaDO2(fio2, paco2Mmhg, pao2Mmhg);
+  // Android uses Math.round(aGradient) always
+  return Math.round(aa);
 }
 
-/* --- Diagnosis ------------------------------------------------------------- */
-/*
-  Classification thresholds (all in mmHg):
-    pH < 7.35  -> acidaemia
-    pH > 7.45  -> alkalaemia
-    PaCO2 < 35 -> respiratory alkalosis tendency
-    PaCO2 > 45 -> respiratory acidosis tendency
-    HCO3 < 22  -> metabolic acidosis tendency
-    HCO3 > 26  -> metabolic alkalosis tendency
-
-  Full truth table (Dr. Deopujari):
-    Normal pH + normal CO2              → Normal
-    Normal pH + low CO2                 → Compensated Respiratory Alkalosis
-    Normal pH + high CO2 + high HCO3   → Metabolic Alkalosis and Respiratory Acidosis
-    Normal pH + high CO2 + normal HCO3 → Compensated Respiratory Acidosis
-
-    Acidemia + high CO2 + high HCO3    → Partially Compensated Respiratory Acidosis
-    Acidemia + high CO2 + low HCO3     → Respiratory Acidosis and Metabolic Acidosis
-    Acidemia + high CO2 + normal HCO3  → Respiratory Acidosis
-    Acidemia + normal CO2              → Metabolic Acidosis
-    Acidemia + low CO2                 → Partially Compensated Metabolic Acidosis
-
-    Alkalemia + low CO2 + low HCO3     → Partially Compensated Respiratory Alkalosis
-    Alkalemia + low CO2 + normal/high  → Respiratory Alkalosis
-    Alkalemia + normal CO2             → Metabolic Alkalosis
-    Alkalemia + high CO2               → Metabolic Alkalosis and Respiratory Acidosis
-*/
-function diagnose(ph, paco2Mmhg, hco3) {
-  return { primary: null, secondary: interpret(ph, paco2Mmhg, hco3) };
+/* --- Diagnosis (Android 3-step system) ------------------------------------- */
+function diagnose(ph, paco2Mmhg) {
+  // interpret() now uses Android's exact step1→step2→step3 logic
+  return { primary: null, secondary: interpret(ph, paco2Mmhg) };
 }
 
 /* --- Unit configs ---------------------------------------------------------- */
@@ -120,7 +88,7 @@ function PHScale({ ph, onChange }) {
     (cx) => {
       if (!drag.current || !ref.current) return;
       const w = ref.current.getBoundingClientRect().width;
-      const dph = ((cx - st.current.x) / w) * 0.3;
+      const dph = ((st.current.x - cx) / w) * 0.3;
       onChange(r2(clamp(st.current.ph + dph, MIN, MAX)));
     },
     [onChange],
@@ -440,10 +408,7 @@ export default function ABGTutor() {
     () => calcAA(pao2, fio2, paco2, unit),
     [pao2, fio2, paco2, unit],
   );
-  const diagnosis = useMemo(
-    () => diagnose(ph, paco2Mmhg, hco3),
-    [ph, paco2Mmhg, hco3],
-  );
+  const diagnosis = useMemo(() => diagnose(ph, paco2Mmhg), [ph, paco2Mmhg]);
   const isChanged =
     Math.abs(paco2 - paco2Cfg.normal) > 0.05 || Math.abs(ph - 7.4) > 0.01;
   const extTarget = useMemo(() => {

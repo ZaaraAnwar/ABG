@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { calculateCorrectedAnionGap4Albumin } from "../../utils/abgMath";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const NORMAL_ALBUMIN = 3.5;
@@ -16,7 +17,7 @@ export default function AnionGap() {
       ? ag
       : albumin >= NORMAL_ALBUMIN
         ? "NA"
-        : ag + 2.5 * (NORMAL_ALBUMIN - albumin);
+        : calculateCorrectedAnionGap4Albumin(ag, albumin);
 
   const status = useMemo(() => {
     if (ag < 8) return { label: "Low Anion Gap", color: "#245576" };

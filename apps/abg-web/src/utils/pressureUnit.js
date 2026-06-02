@@ -17,5 +17,5 @@ export function getPaco2Range(unit) {
 }
 
 export function getNormalPaco2(unit) {
-  return unit === "kPa" ? 5.0 : 40.0;
+  return unit === "kPa" ? 5.3 : 40.0;
 }

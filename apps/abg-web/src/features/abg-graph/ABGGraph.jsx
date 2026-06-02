@@ -471,9 +471,9 @@ export default function ABGGraph() {
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          gap: "6px 12px",
-          fontSize: 11,
-          fontWeight: 500,
+          gap: "8px 16px",
+          fontSize: 13,
+          fontWeight: 600,
           color: "#444",
           paddingTop: 10,
           paddingBottom: 6,
@@ -482,12 +482,12 @@ export default function ABGGraph() {
       >
         {[
           { color: "#81afd4", label: "Normal" },
-          { color: "#d6a6a1", label: "Met. Acidosis" },
-          { color: "#bad098", label: "Met. Alkalosis" },
-          { color: "#aba0c5", label: "Acute Resp. Acid." },
-          { color: "#88bacd", label: "Chr. Resp. Acid." },
-          { color: "#f2ccaa", label: "Acute Resp. Alk." },
-          { color: "#9aaeb9", label: "Chr. Resp. Alk." },
+          { color: "#d6a6a1", label: "Metabolic Acidosis" },
+          { color: "#bad098", label: "Metabolic Alkalosis" },
+          { color: "#aba0c5", label: "Acute Respiratory Acidosis" },
+          { color: "#88bacd", label: "Chronic Respiratory Acidosis" },
+          { color: "#f2ccaa", label: "Acute Respiratory Alkalosis" },
+          { color: "#9aaeb9", label: "Chronic Respiratory Alkalosis" },
           { color: "#ff1744", label: "Selected value" },
         ].map(({ color, label }) => (
           <div
