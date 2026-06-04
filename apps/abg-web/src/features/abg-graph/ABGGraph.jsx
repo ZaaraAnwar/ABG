@@ -215,6 +215,13 @@ export default function ABGGraph() {
   const [paco2, setPaco2] = useState(() => getNormalPaco2(unit));
   const [ph, setPh] = useState(NORMAL_PH);
   const [previousUnit, setPreviousUnit] = useState(unit);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     if (previousUnit === unit) return;
@@ -250,13 +257,13 @@ export default function ABGGraph() {
       style={{
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        /* Full height of viewport, no overflow */
-        height: "100vh",
-        maxHeight: "100vh",
-        overflow: "hidden",
+        height: isMobile ? "auto" : "100vh",
+        minHeight: isMobile ? "100vh" : "auto",
+        maxHeight: isMobile ? "none" : "100vh",
+        overflow: isMobile ? "auto" : "hidden",
         display: "flex",
         flexDirection: "column",
-        padding: "10px 16px 8px",
+        padding: isMobile ? "0px 2px" : "10px 16px 8px", // completely remove top/bottom padding on mobile/tab
         boxSizing: "border-box",
         position: "relative",
       }}
@@ -325,9 +332,9 @@ export default function ABGGraph() {
           fontSize: 14,
           fontWeight: 600,
           color: "#333",
-          margin: "4px 0 6px",
+          margin: isMobile ? "0" : "4px 0 6px",
           lineHeight: 1.35,
-          minHeight: 36,
+          minHeight: isMobile ? 22 : 36,
           flexShrink: 0,
         }}
       >
@@ -339,13 +346,15 @@ export default function ABGGraph() {
       {/* ── Chart — grows to fill remaining space ── */}
       <div
         style={{
-          flex: 1,
+          flex: isMobile ? "none" : 1,
           minHeight: 0,
           position: "relative",
-          paddingLeft: 56, // Space for PaCO2 label and Y ticks
-          paddingBottom: 44, // Space for X ticks and pH label
-          paddingRight: 20, // Space for X axis extending to the right
-          paddingTop: 20,
+          marginTop: isMobile ? 70 : 0,
+          marginBottom: isMobile ? 35 : 0,
+          paddingLeft: isMobile ? 36 : 56, // smaller left padding
+          paddingBottom: isMobile ? 24 : 44, // reduced bottom space
+          paddingRight: isMobile ? 4 : 20, // smaller right padding for complete width
+          paddingTop: isMobile ? 0 : 20, // removed top space
           boxSizing: "border-box",
         }}
       >
@@ -357,7 +366,7 @@ export default function ABGGraph() {
           style={{
             display: "block",
             width: "100%",
-            height: "100%",
+            height: isMobile ? "auto" : "100%",
             overflow: "visible",
           }}
         >
@@ -369,9 +378,9 @@ export default function ABGGraph() {
           <text
             x="-46"
             y={SVG_H / 2}
-            fontSize="20"
+            fontSize={isMobile ? "28" : "20"}
             fill="#000"
-            fontWeight="400"
+            fontWeight={isMobile ? "600" : "400"}
             textAnchor="middle"
             transform={`rotate(-90, -46, ${SVG_H / 2})`}
             fontFamily="'Segoe UI', system-ui, sans-serif"
@@ -383,9 +392,9 @@ export default function ABGGraph() {
           <text
             x={SVG_W + 20}
             y={SVG_H + 34}
-            fontSize="20"
+            fontSize={isMobile ? "28" : "20"}
             fill="#000"
-            fontWeight="400"
+            fontWeight={isMobile ? "600" : "400"}
             textAnchor="end"
             fontFamily="'Segoe UI', system-ui, sans-serif"
           >
@@ -404,9 +413,10 @@ export default function ABGGraph() {
               />
               <text
                 x="-12"
-                y={mapY(val) + 5}
-                fontSize="16"
-                fill="#000"
+                y={mapY(val) + (isMobile ? 6 : 5)}
+                fontSize={isMobile ? "24" : "16"}
+                fill={isMobile ? "#222" : "#000"}
+                fontWeight={isMobile ? "600" : "400"}
                 textAnchor="end"
               >
                 {val}
@@ -427,9 +437,10 @@ export default function ABGGraph() {
               />
               <text
                 x={mapX(val)}
-                y={SVG_H + 22}
-                fontSize="16"
-                fill="#000"
+                y={SVG_H + (isMobile ? 26 : 22)}
+                fontSize={isMobile ? "24" : "16"}
+                fill={isMobile ? "#222" : "#000"}
+                fontWeight={isMobile ? "600" : "400"}
                 textAnchor="middle"
               >
                 {val.toFixed(1)}
@@ -455,7 +466,7 @@ export default function ABGGraph() {
           <circle
             cx={mapX(ph)}
             cy={mapY(paco2ForPlot)}
-            r="8"
+            r={isMobile ? "12" : "8"}
             fill="#e11c2a"
             style={{
               transition: "cx 0.1s linear, cy 0.1s linear",
@@ -471,12 +482,12 @@ export default function ABGGraph() {
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          gap: "8px 16px",
-          fontSize: 13,
+          gap: isMobile ? "4px 8px" : "8px 16px",
+          fontSize: isMobile ? 10 : 13,
           fontWeight: 600,
           color: "#444",
-          paddingTop: 10,
-          paddingBottom: 6,
+          paddingTop: isMobile ? 4 : 10,
+          paddingBottom: isMobile ? 2 : 6,
           borderTop: "1px solid #f0f0f0",
         }}
       >

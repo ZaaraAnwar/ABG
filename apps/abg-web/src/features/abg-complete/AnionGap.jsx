@@ -5,25 +5,45 @@ import { calculateCorrectedAnionGap4Albumin } from "../../utils/abgMath";
 const NORMAL_ALBUMIN = 3.5;
 
 export default function AnionGap() {
+  // Read HCO3 from URL query param (passed from ABGComplete).
+  // Android: calculatedHCO3 = getArguments().getFloat(Constants.HCO3, 0)
+  //          then used as Math.round(calculatedHCO3) for bar heights.
+  const urlHco3 = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const val = params.get("hco3");
+    if (val === null) return null;
+    const parsed = Math.round(parseInt(val, 10));
+    return Number.isFinite(parsed) ? parsed : null;
+  }, []);
+  const isHco3Fixed = urlHco3 !== null;
+
+  // Android initial values: NA=140, CL=110, HCO3=round(calculatedHCO3)
   const [na, setNa] = useState(140);
   const [cl, setCl] = useState(110);
-  const [hco3, setHco3] = useState(9);
+  const [hco3, setHco3] = useState(isHco3Fixed ? urlHco3 : 9);
   const [albumin, setAlbumin] = useState(3.5);
 
-  // ── ALL ORIGINAL LOGIC UNTOUCHED ──────────────────────────────────────────
+  // ── Core AG formula: ag = NA - (CL + HCO3)  [matches Android] ────────────
   const ag = na - (cl + hco3);
-  const correctedAG =
-    albumin === 0
-      ? ag
-      : albumin >= NORMAL_ALBUMIN
-        ? "NA"
-        : calculateCorrectedAnionGap4Albumin(ag, albumin);
 
+  // correctedAG: mirrors Android's albumin logic
+  //   albumin >= 3.5 → "NA"  (isSAEnabled=false in Android)
+  //   albumin <  3.5 → calculateCorrectedAnionGap4Albumin(ag, albumin)
+  const correctedAG =
+    albumin >= NORMAL_ALBUMIN
+      ? "NA"
+      : calculateCorrectedAnionGap4Albumin(ag, albumin);
+
+  // effectiveAG: the value passed to showAnionGapResult() in Android.
+  // When albumin is corrected (< 3.5) use correctedAG; otherwise use raw ag.
+  const effectiveAG = typeof correctedAG === "number" ? correctedAG : ag;
+
+  // Status label driven by effectiveAG — mirrors Android's showAnionGapResult()
   const status = useMemo(() => {
-    if (ag < 8) return { label: "Low Anion Gap", color: "#245576" };
-    if (ag > 12) return { label: "High Anion Gap", color: "#245576" };
+    if (effectiveAG < 8) return { label: "Low Anion Gap", color: "#245576" };
+    if (effectiveAG > 12) return { label: "High Anion Gap", color: "#245576" };
     return { label: "Normal Anion Gap", color: "#245576" };
-  }, [ag]);
+  }, [effectiveAG]);
 
   const maxVal = Math.max(na, cl + hco3 + Math.max(0, ag)) + 20;
   const getH = (val) => (val / maxVal) * 300;
@@ -382,15 +402,15 @@ export default function AnionGap() {
           </div>
         </div>
 
-        {/* Footer Result — identical logic */}
+        {/* Footer Result — uses effectiveAG, matching Android's showAnionGapResult() */}
         <a
           href="#"
           className="ag-footer-btn"
           onClick={(e) => {
             e.preventDefault();
-            if (ag > 12) {
+            if (effectiveAG > 12) {
               window.location.href = "https://abg.leadows.com/high-anion-gap/";
-            } else if (ag >= 8 && ag <= 12) {
+            } else if (effectiveAG >= 8 && effectiveAG <= 12) {
               window.location.href =
                 "https://abg.leadows.com/normal-anion-gap/";
             } else {
@@ -405,7 +425,7 @@ export default function AnionGap() {
           }}
         >
           {status.label}
-          {ag > 12 && (
+          {effectiveAG > 12 && (
             <div
               style={{
                 fontSize: 13,
@@ -417,7 +437,7 @@ export default function AnionGap() {
               Click for Delta-Delta &amp; Osmolar Gap Analysis
             </div>
           )}
-          {ag >= 8 && ag <= 12 && (
+          {effectiveAG >= 8 && effectiveAG <= 12 && (
             <div
               style={{
                 fontSize: 13,
@@ -429,7 +449,7 @@ export default function AnionGap() {
               Click for Normal Anion Gap Details
             </div>
           )}
-          {ag < 8 && (
+          {effectiveAG < 8 && (
             <div
               style={{
                 fontSize: 13,
@@ -475,21 +495,32 @@ export default function AnionGap() {
               style={{ width: "100%" }}
             />
           </div>
-          <div style={{ marginBottom: 20 }}>
-            <label
-              style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
-            >
-              HCO3 ({hco3})
-            </label>
-            <input
-              type="range"
-              min="9"
-              max="50"
-              value={hco3}
-              onChange={(e) => setHco3(parseInt(e.target.value))}
-              style={{ width: "100%" }}
-            />
-          </div>
+          {!isHco3Fixed && (
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
+              >
+                HCO3 ({hco3})
+              </label>
+              <input
+                type="range"
+                min="9"
+                max="50"
+                value={hco3}
+                onChange={(e) => setHco3(parseInt(e.target.value))}
+                style={{ width: "100%" }}
+              />
+            </div>
+          )}
+          {isHco3Fixed && (
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
+              >
+                HCO3 : {hco3}
+              </label>
+            </div>
+          )}
         </div>
       </div>
     </>

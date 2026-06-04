@@ -301,6 +301,13 @@ export default function DynamicHHEquation() {
   const CO2_FACTOR = getCO2Factor(unit);
   const { min: PACO2_MIN, max: PACO2_MAX } = getPaco2Range(unit);
   const normalPaco2 = getNormalPaco2(unit);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   /* Slider values */
   const [hco3, setHco3] = useState(24.0);
@@ -466,14 +473,14 @@ export default function DynamicHHEquation() {
       style={{
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
-        padding: "24px",
+        padding: isMobile ? "0px" : "24px",
         width: "100%",
         maxWidth: "100%",
         margin: 0,
         boxSizing: "border-box",
       }}
     >
-      <div style={{ padding: "28px 28px 0" }}>
+      <div style={{ padding: isMobile ? "10px 14px 0" : "28px 28px 0" }}>
 
         {/* Animated formula — replaces static PhFormula */}
         <AnimatedFormula

@@ -523,7 +523,7 @@ export default function ABGTutor() {
         ]);
 
     if (co2 >= co2Min && co2 <= agUpper) {
-      return { label: "Anion Gap", url: "https://abg.leadows.com/anion-gap/" };
+      return { label: "Anion Gap", url: `https://abg.leadows.com/anion-gap/?hco3=${hco3}` };
     }
 
     if (ph >= 7.35 && co2 >= maLower) {
@@ -534,7 +534,7 @@ export default function ABGTutor() {
     }
 
     return null;
-  }, [ph, paco2, paco2Mmhg, unit]);
+  }, [ph, paco2, paco2Mmhg, unit, hco3]);
   const isAcidic = ph <= 7.34;
   const isAlkalotic = ph >= 7.44;
   const flowUrl = isAcidic
@@ -573,11 +573,11 @@ export default function ABGTutor() {
   }, [isMobile, isTablet]);
 
   /* Responsive sizing */
-  const barH = isMobile ? 240 : isTablet ? 340 : 460;
+  const barH = isMobile ? "50vh" : isTablet ? 340 : 460;
   const barW = isMobile ? 44 : isTablet ? 62 : 88;
   const circSz = isMobile ? 32 : isTablet ? 42 : 54;
-  const tickFont = isMobile ? 9 : isTablet ? 12 : 16;
-  const titleSz = isMobile ? 13 : isTablet ? 17 : 24;
+  const tickFont = isMobile ? 11 : isTablet ? 14 : 18;
+  const titleSz = isMobile ? 15 : isTablet ? 20 : 26;
 
   return (
     <>
@@ -626,18 +626,18 @@ export default function ABGTutor() {
           display: flex;
           flex-direction: column;
         }
-        .interp-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 14px; }
-        .interp-body   { font-size: 17px; line-height: 1.55; }
+        .interp-box h2 { font-size: 26px; font-weight: 700; margin-bottom: 14px; }
+        .interp-body   { font-size: 20px; line-height: 1.55; }
 
         .sliders-box      { background: transparent; padding: 12px 12px 24px; }
         .s-row            { margin-bottom: 14px; }
         .s-row:last-child { margin-bottom: 0; }
-        .s-label          { font-size: 16px; margin-bottom: 2px; }
-        .s-val            { font-size: 13px; color: #555; margin-bottom: 3px; }
+        .s-label          { font-size: 19px; margin-bottom: 2px; }
+        .s-val            { font-size: 16px; color: #555; margin-bottom: 3px; }
         input[type=range] { width: 100%; accent-color: #4a9ab5; cursor: pointer; }
 
         .ph-wrap  { position: relative; width: 100%; }
-        .ph-title { text-align: center; font-size: 18px; margin: 14px 0 8px; }
+        .ph-title { text-align: center; font-size: 22px; margin: 14px 0 8px; }
 
         .popup-wrap { position: relative; width: 100%; }
 
@@ -647,7 +647,7 @@ export default function ABGTutor() {
           background: #245576;
           color: #fff;
           border: none;
-          font-size: 15px;
+          font-size: 18px;
           font-weight: 700;
           cursor: pointer;
           margin-top: 18px;
@@ -670,11 +670,11 @@ export default function ABGTutor() {
           width: 260px;
           z-index: 30;
         }
-        .popup-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        .popup-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
         .popup-btn {
           width: 100%; border: none;
           background: #e5e5e5; padding: 12px 10px;
-          font-size: 15px; cursor: pointer; border-radius: 6px;
+          font-size: 16px; cursor: pointer; border-radius: 6px;
         }
         .popup-btn:hover { background: #d8d8d8; }
         .popup-arrow {
@@ -703,15 +703,17 @@ export default function ABGTutor() {
           }
           .abg-side  { padding: 10px 5px 14px; }
           .interp-box          { min-height: 130px; padding: 12px 8px 14px; }
-          .interp-box h2       { font-size: 16px; margin-bottom: 10px; }
-          .interp-body         { font-size: 13px; }
+          .interp-box h2       { font-size: 20px; margin-bottom: 10px; }
+          .interp-body         { font-size: 16px; }
           .sliders-box         { padding: 10px 8px 18px; }
           .s-row               { margin-bottom: 10px; }
-          .s-label             { font-size: 13px; }
-          .s-val               { font-size: 11px; }
-          .ph-title            { font-size: 15px; margin: 10px 0 6px; }
-          .ext-btn             { height: 64px; font-size: 12px; margin-top: 14px; }
+          .s-label             { font-size: 16px; }
+          .s-val               { font-size: 14px; }
+          .ph-title            { font-size: 18px; margin: 10px 0 6px; }
+          .ext-btn             { height: 64px; font-size: 15px; margin-top: 14px; }
           .popup               { width: min(240px, 88vw); }
+          .popup-title         { font-size: 16px; margin-bottom: 12px; }
+          .popup-btn           { font-size: 15px; padding: 10px 8px; }
           .flowchart-btn       { width: 36px; height: 36px; }
           .flowchart-btn svg   { width: 18px; height: 18px; }
         }
@@ -724,18 +726,19 @@ export default function ABGTutor() {
           }
           .abg-side  { padding: 6px 2px 10px; }
           .interp-box          { min-height: 100px; padding: 8px 4px 10px; }
-          .interp-box h2       { font-size: 12px; margin-bottom: 8px; }
-          .interp-body         { font-size: 10px; line-height: 1.4; }
+          .interp-box h2       { font-size: 16px; margin-bottom: 8px; }
+          .interp-body         { font-size: 14px; line-height: 1.4; }
           .sliders-box         { padding: 6px 4px 12px; }
           .s-row               { margin-bottom: 8px; }
-          .s-label             { font-size: 11px; }
-          .s-val               { font-size: 9px; }
-          .ph-title            { font-size: 12px; margin: 8px 0 5px; }
-          .ext-btn             { height: 48px; font-size: 10px; margin-top: 10px; }
-          .popup               { width: min(200px, 86vw); padding: 10px 10px 12px; }
-          .popup-title         { font-size: 11px; margin-bottom: 8px; }
-          .popup-btn           { font-size: 10px; padding: 7px 5px; }
-          .flowchart-btn       { width: 28px; height: 28px; margin-bottom: 4px; }
+          .s-label             { font-size: 14px; }
+          .s-val               { font-size: 12px; }
+          .ph-title            { font-size: 16px; margin: 8px 0 5px; }
+          .ext-btn             { height: 54px; font-size: 13px; margin-top: 10px; }
+          .popup-wrap          { margin-top: auto; margin-bottom: 10px; }
+          .popup               { width: min(220px, 86vw); padding: 12px 10px 14px; }
+          .popup-title         { font-size: 14px; margin-bottom: 8px; }
+          .popup-btn           { font-size: 13px; padding: 8px 6px; }
+          .flowchart-btn       { width: 32px; height: 32px; margin-bottom: 4px; }
           .flowchart-btn svg   { width: 14px; height: 14px; }
         }
       `}</style>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Slider from "../components/Slider";
 import { usePressureUnit } from "../context/PressureUnitContext";
@@ -21,6 +21,13 @@ export default function UnderstandingPH() {
   const { unit } = usePressureUnit();
   const [ph, setPh] = useState(NORMAL_PH);
   const h = Math.round(phToH(ph));
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 480);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 480);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handlePhChange = (newPh) => setPh(newPh);
   const handleHChange = (newH) => setPh(hToPh(newH));
@@ -62,13 +69,14 @@ export default function UnderstandingPH() {
         fontFamily: "'Segoe UI', system-ui, sans-serif",
         background: "#fff",
         // Lock to viewport — no scroll
-        height: "100dvh",
-        maxHeight: "100dvh",
+        height: isMobile ? "auto" : "100dvh",
+        minHeight: isMobile ? "100dvh" : "auto",
+        maxHeight: isMobile ? "none" : "100dvh",
         display: "flex",
         flexDirection: "column",
         padding: "10px 16px 8px",
         boxSizing: "border-box",
-        overflow: "hidden",
+        overflow: isMobile ? "auto" : "hidden",
         position: "relative",
       }}
     >
@@ -192,11 +200,15 @@ export default function UnderstandingPH() {
       {/* ── Chart — fills remaining space ── */}
       <div
         style={{
-          flex: 1,
+          flex: isMobile ? "none" : 1,
           minHeight: 0, // critical: lets flex child shrink
           position: "relative",
-          paddingLeft: 16,
-          paddingBottom: 28,
+          marginTop: isMobile ? 70 : 0,
+          marginBottom: isMobile ? 60 : 0,
+          paddingLeft: isMobile ? 42 : 56, // give enough room for the Y-axis labels
+          paddingBottom: isMobile ? 36 : 44, // give enough room for the X-axis labels
+          paddingRight: isMobile ? 6 : 20, // right space for curve
+          paddingTop: isMobile ? 6 : 20, // top space
           boxSizing: "border-box",
         }}
       >
@@ -222,19 +234,19 @@ export default function UnderstandingPH() {
           style={{
             display: "block",
             width: "100%",
-            height: "100%",
+            height: isMobile ? "auto" : "100%",
             overflow: "visible",
           }}
         >
           {/* Y-axis label — inside SVG, snug beside tick numbers */}
           <text
-            x="-38"
+            x="-60"
             y={SVG_H / 2}
-            fontSize="13"
-            fill="#666"
-            fontWeight="600"
+            fontSize="26"
+            fill="#444"
+            fontWeight="700"
             textAnchor="middle"
-            transform={`rotate(-90, -38, ${SVG_H / 2})`}
+            transform={`rotate(-90, -60, ${SVG_H / 2})`}
             fontFamily="'Segoe UI', system-ui, sans-serif"
           >
             H⁺ (nmol/L)
@@ -253,9 +265,10 @@ export default function UnderstandingPH() {
               />
               <text
                 x="-10"
-                y={mapY(val) + 5}
-                fontSize="14"
-                fill="#888"
+                y={mapY(val) + 6}
+                fontSize="24"
+                fontWeight="600"
+                fill="#333"
                 textAnchor="end"
               >
                 {val}
@@ -276,9 +289,10 @@ export default function UnderstandingPH() {
               />
               <text
                 x={mapX(val)}
-                y={SVG_H + 22}
-                fontSize="14"
-                fill="#888"
+                y={SVG_H + 26}
+                fontSize="24"
+                fontWeight="600"
+                fill="#333"
                 textAnchor="middle"
               >
                 {val.toFixed(1)}
@@ -333,7 +347,7 @@ export default function UnderstandingPH() {
           <circle
             cx={mapX(ph)}
             cy={mapY(h)}
-            r="10"
+            r="13"
             fill={dotColor}
             style={{ transition: "cx 0.1s linear, cy 0.1s linear" }}
           />
