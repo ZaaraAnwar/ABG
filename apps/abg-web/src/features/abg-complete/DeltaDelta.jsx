@@ -22,15 +22,15 @@ export default function DeltaDelta() {
   // ─── Calculations (Android Formula.java — exact port) ──────────────────────
 
   // Delta Delta: (correctedAG - 12) - (24 - calculatedHCO3)
-  const deltaDelta = useMemo(() =>
-    calculationDeltadelta(correctedAG, hco3),
-    [correctedAG, hco3]
+  const deltaDelta = useMemo(
+    () => calculationDeltadelta(correctedAG, hco3),
+    [correctedAG, hco3],
   );
 
   // Delta Delta interpretation with ±5 thresholds and AG>12 gate
-  const ddInterpretation = useMemo(() =>
-    getDeltadeltaResult(deltaDelta, correctedAG),
-    [deltaDelta, correctedAG]
+  const ddInterpretation = useMemo(
+    () => getDeltadeltaResult(deltaDelta, correctedAG),
+    [deltaDelta, correctedAG],
   );
 
   // Osmolar Gap
@@ -42,9 +42,9 @@ export default function DeltaDelta() {
   }, [na, glucose, bun, measuredOsm]);
 
   // Osmolar Gap result: "Toxic Alcohol" only if BOTH osmolarGap > 10 AND correctedAG > 12
-  const osmolarResult = useMemo(() =>
-    getOsmolarGapResult(osmolarGap, correctedAG),
-    [osmolarGap, correctedAG]
+  const osmolarResult = useMemo(
+    () => getOsmolarGapResult(osmolarGap, correctedAG),
+    [osmolarGap, correctedAG],
   );
 
   return (
@@ -56,192 +56,215 @@ export default function DeltaDelta() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: "40px 20px"
+        padding: "40px 20px",
       }}
     >
       <div style={{ width: "100%", maxWidth: 900 }}>
-      {/* Delta Delta Section */}
-      <h2
-        style={{
-          textAlign: "center",
-          fontSize: 28,
-          fontWeight: 400,
-          color: "#222",
-          marginBottom: 20,
-        }}
-      >
-        Delta Delta
-      </h2>
-
-      <div
-        style={{
-          background: "#f0f0f0",
-          border: "1px solid #ccc",
-          padding: "24px",
-          textAlign: "center",
-          marginBottom: 32,
-          borderRadius: 4,
-        }}
-      >
-        <div
+        {/* Delta Delta Section */}
+        <h2
           style={{
+            textAlign: "center",
+            fontSize: 28,
             fontWeight: 400,
-            fontSize: 16,
-            color: "#333",
-            marginBottom: 12,
-            lineHeight: 1.5,
+            color: "#222",
+            marginBottom: 20,
           }}
         >
-         {ddInterpretation}
-        </div>
-        <div style={{ fontWeight: 600, fontSize: 16, color: "#000" }}>
-          Calculated Delta Delta = {round2Digit(deltaDelta)}
-        </div>
-      </div>
+          Delta Delta
+        </h2>
 
-      {/* Patient Data (Hidden inputs for Delta-Delta context) */}
-      <div style={{ display: "none" }}>
-        <input value={correctedAG} onChange={(e) => setCorrectedAG(Number(e.target.value))} />
-        <input value={hco3} onChange={(e) => setHco3(Number(e.target.value))} />
-        <input value={na} onChange={(e) => setNa(Number(e.target.value))} />
-      </div>
-
-      {/* Osmolar Gap Section */}
-      <h3
-        style={{
-          fontSize: 20,
-          fontWeight: 500,
-          color: "#333",
-          marginBottom: 16,
-        }}
-      >
-        Osmolar Gap
-      </h3>
-
-      <div
-        style={{
-          background: "#eee",
-          padding: "30px 20px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          marginBottom: 32,
-          borderRadius: 4,
-        }}
-      >
-        <div style={{ position: "relative" }}>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#444",
-              marginBottom: 8,
-            }}
-          >
-            Glucose
-          </div>
-          <input
-            type="number"
-            placeholder="Please enter Glucose"
-            value={glucose}
-            onChange={(e) => setGlucose(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#444",
-              marginBottom: 8,
-            }}
-          >
-            BUN
-          </div>
-          <input
-            type="number"
-            placeholder="Please enter BUN"
-            value={bun}
-            onChange={(e) => setBun(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#444",
-              marginBottom: 8,
-            }}
-          >
-            Measured Osmolality
-          </div>
-          <input
-            type="number"
-            placeholder="Please enter Osmolality"
-            value={measuredOsm}
-            onChange={(e) => setMeasuredOsm(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
-      </div>
-
-      {/* Interpretation Section */}
-      <div style={{ padding: "20px 0", textAlign: "center" }}>
         <div
           style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: "#000",
-            marginBottom: 24,
+            background: "#ECEEF5",
+            border: "1px solid #888",
+            padding: "24px",
+            textAlign: "center",
+            marginBottom: 32,
+            borderRadius: 4,
           }}
         >
-          Interpretation
-        </div>
-        <div style={{ fontSize: 16, color: "#333", marginBottom: 8 }}>
-          {osmolarResult}
-        </div>
-        <div style={{ fontSize: 14, color: "#666" }}>
-          Calculated Osmolar Gap = {format2D(osmolarGap)}
-        </div>
-
-        {/* Home Flowchart Icon */}
-       <div style={{ display: "flex", justifyContent: "center", marginTop: 40, marginBottom: 20 }}>
           <div
-            onClick={() => {
-              window.location.href = "https://abg.leadows.com/alkalosis-flowchart/";
-            }}
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              border: "1.5px solid #a00",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#a00",
-              cursor: "pointer",
+              fontWeight: 400,
+              fontSize: 16,
+              color: "#111",
+              marginBottom: 12,
+              lineHeight: 1.5,
             }}
-            title="Go to Alkalosis Flowchart"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="10" y="3" width="4" height="4" />
-              <path d="M12 7v4" />
-              <path d="M6 11h12" />
-              <path d="M6 11v4" />
-              <path d="M18 11v4" />
-              <rect x="4" y="15" width="4" height="4" />
-              <rect x="16" y="15" width="4" height="4" />
-              <path d="M12 11v4" />
-              <rect x="10" y="15" width="4" height="4" />
-            </svg>
+            {ddInterpretation}
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 16, color: "#000" }}>
+            Calculated Delta Delta = {round2Digit(deltaDelta)}
           </div>
         </div>
-      </div>
+
+        {/* Patient Data (Hidden inputs for Delta-Delta context) */}
+        <div style={{ display: "none" }}>
+          <input
+            value={correctedAG}
+            onChange={(e) => setCorrectedAG(Number(e.target.value))}
+          />
+          <input
+            value={hco3}
+            onChange={(e) => setHco3(Number(e.target.value))}
+          />
+          <input value={na} onChange={(e) => setNa(Number(e.target.value))} />
+        </div>
+
+        {/* Osmolar Gap Section */}
+        <h3
+          style={{
+            fontSize: 20,
+            fontWeight: 500,
+            color: "#111",
+            marginBottom: 16,
+          }}
+        >
+          Osmolar Gap
+        </h3>
+
+        <div
+          style={{
+            background: "#ECEEF5",
+            padding: "30px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+            marginBottom: 32,
+            borderRadius: 4,
+          }}
+        >
+          <div style={{ position: "relative" }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#111",
+                marginBottom: 8,
+              }}
+            >
+              Glucose
+            </div>
+            <input
+              type="number"
+              placeholder="Please enter Glucose"
+              value={glucose}
+              onChange={(e) => setGlucose(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#111",
+                marginBottom: 8,
+              }}
+            >
+              BUN
+            </div>
+            <input
+              type="number"
+              placeholder="Please enter BUN"
+              value={bun}
+              onChange={(e) => setBun(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#111",
+                marginBottom: 8,
+              }}
+            >
+              Measured Osmolality
+            </div>
+            <input
+              type="number"
+              placeholder="Please enter Osmolality"
+              value={measuredOsm}
+              onChange={(e) => setMeasuredOsm(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        {/* Interpretation Section */}
+        <div style={{ padding: "20px 0", textAlign: "center" }}>
+          <div
+            style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: "#000",
+              marginBottom: 24,
+            }}
+          >
+            Interpretation
+          </div>
+          <div style={{ fontSize: 16, color: "#111", marginBottom: 8 }}>
+            {osmolarResult}
+          </div>
+          <div style={{ fontSize: 14, color: "#333" }}>
+            Calculated Osmolar Gap = {format2D(osmolarGap)}
+          </div>
+
+          {/* Home Flowchart Icon */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: 40,
+              marginBottom: 20,
+            }}
+          >
+            <div
+              onClick={() => {
+                window.location.href =
+                  "https://abg.leadows.com/acidosis-flowchart/";
+              }}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                border: "1.5px solid #a00",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#a00",
+                cursor: "pointer",
+              }}
+              title="Go to Acidosis Flowchart"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="10" y="3" width="4" height="4" />
+                <path d="M12 7v4" />
+                <path d="M6 11h12" />
+                <path d="M6 11v4" />
+                <path d="M18 11v4" />
+                <rect x="4" y="15" width="4" height="4" />
+                <rect x="16" y="15" width="4" height="4" />
+                <path d="M12 11v4" />
+                <rect x="10" y="15" width="4" height="4" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -250,7 +273,7 @@ export default function DeltaDelta() {
 const inputStyle = {
   width: "100%",
   padding: "12px 16px",
-  border: "1px solid #ccc",
+  border: "1px solid #111",
   borderRadius: 6,
   fontSize: 14,
   boxSizing: "border-box",

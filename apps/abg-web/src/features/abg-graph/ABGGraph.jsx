@@ -371,7 +371,33 @@ export default function ABGGraph() {
           }}
         >
           {/* Main Axes */}
-          <line x1="0" y1="-20" x2="0" y2={SVG_H} stroke="#222" strokeWidth="1.5" />
+            <line
+            x1="0"
+            y1={SVG_H}
+            x2={mapX(7.4)}
+            y2={SVG_H}
+            stroke="#b71c1c" // red = acidic
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+ 
+          <line
+            x1={mapX(7.4)}
+            y1={SVG_H}
+            x2={SVG_W + 20}
+            y2={SVG_H}
+            stroke="#0d47a1" // blue = alkaline
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <line
+            x1="0"
+            y1={SVG_H}
+            x2={SVG_W + 20}
+            y2={SVG_H}
+            stroke="#222"
+            strokeWidth="1.5"
+          />
           <line x1="0" y1={SVG_H} x2={SVG_W + 20} y2={SVG_H} stroke="#222" strokeWidth="1.5" />
 
           {/* Y-axis label */}

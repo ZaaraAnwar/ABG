@@ -61,27 +61,37 @@ export default function AnionGap() {
           flex-direction: column;
           align-items: center;
           padding: 60px 20px;
+          box-sizing: border-box;
         }
 
-        /* Main content row: albumin panel + graph side-by-side */
+        /* Card wrapper that visually matches the screenshot border */
+        .ag-card {
+          width: 100%;
+          max-width: 700px;
+          padding: 32px 24px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* Main content row: albumin panel + graph side-by-side, centred inside the card */
         .ag-content {
           display: flex;
           width: 100%;
-          max-width: 900px;
-          gap: 60px;
           align-items: center;
           justify-content: center;
-          flex: 1;
+          gap: 40px;
         }
 
         /* Albumin left panel */
         .ag-albumin-panel {
           width: 200px;
-          text-align: center;
           flex-shrink: 0;
           display: flex;
           flex-direction: column;
           gap: 24px;
+          align-items: center;
         }
 
         .ag-albumin-col {
@@ -89,19 +99,23 @@ export default function AnionGap() {
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
+          width: 100%;
+          text-align: center;
         }
 
-        /* Graph area */
+        /* Graph area — centred, bars aligned at the bottom */
         .ag-graph {
           display: flex;
           align-items: flex-end;
-          gap: 80px;
-          height: 400px;
+          justify-content: center;
+          gap: 60px;
+          height: 350px;
+          flex: 1;
         }
 
         /* Sliders section */
         .ag-sliders {
-          margin-top: 40px;
+          margin-top: 32px;
           width: 100%;
           max-width: 640px;
         }
@@ -119,7 +133,7 @@ export default function AnionGap() {
           font-weight: 700;
           font-size: 18px;
           border-radius: 4px;
-          margin-top: 60px;
+          margin-top: 40px;
           letter-spacing: 0.5px;
           cursor: pointer;
           transition: all 0.2s;
@@ -127,45 +141,50 @@ export default function AnionGap() {
 
         /* ── Tablet  ≤ 700px ──────────────────────────────────────────── */
         @media (max-width: 700px) {
-          .ag-root { padding: 32px 14px 40px; }
+          .ag-root { padding: 24px 12px 40px; }
+          .ag-card { padding: 24px 16px; border-radius: 12px; }
 
           /* Stack albumin panel above the graph */
           .ag-content {
             flex-direction: column;
-            gap: 32px;
+            gap: 24px;
             align-items: center;
           }
 
           .ag-albumin-panel {
             width: 100%;
             flex-direction: row;
-            gap: 12px;
-            align-items: flex-start;
-            margin-bottom: 60px;
+            gap: 16px;
+            align-items: stretch;
+            justify-content: center;
           }
           .ag-albumin-col {
             flex: 1;
-          }
-
-          /* Shrink graph height and gap on smaller screens */
-          .ag-graph {
-            gap: 48px;
-            height: 280px;
-            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
           }
 
-          .ag-footer-btn { margin-top: 32px; font-size: 16px; }
-          .ag-sliders    { margin-top: 28px; }
+          /* Shrink graph on smaller screens */
+          .ag-graph {
+            gap: 40px;
+            height: 260px;
+            width: 100%;
+          }
+
+          .ag-footer-btn { margin-top: 24px; font-size: 16px; }
+          .ag-sliders    { margin-top: 24px; }
         }
 
         /* ── Mobile  ≤ 420px ──────────────────────────────────────────── */
         @media (max-width: 420px) {
-          .ag-root { padding: 20px 10px 32px; }
+          .ag-root { padding: 16px 8px 28px; }
+          .ag-card { padding: 16px 10px; }
 
           .ag-graph {
-            gap: 32px;
-            height: 220px;
+            gap: 28px;
+            height: 200px;
           }
 
           .ag-footer-btn { font-size: 14px; padding: 13px; }
@@ -173,16 +192,19 @@ export default function AnionGap() {
       `}</style>
 
       <div className="ag-root">
+        <div className="ag-card">
         <div className="ag-content">
+          
           {/* Left: Albumin Controls — structure identical to original */}
           <div className="ag-albumin-panel">
+            {/* ── Serum Albumin stepper ──────────────────────────────── */}
             <div className="ag-albumin-col">
               <div
                 style={{
                   fontWeight: 700,
-                  fontSize: 16,
+                  fontSize: 15,
                   color: "#333",
-                  marginBottom: 12,
+                  marginBottom: 10,
                 }}
               >
                 Serum Albumin
@@ -191,13 +213,12 @@ export default function AnionGap() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
                   background: "#f0f2f5",
-                  borderRadius: 12,
-                  padding: "4px",
+                  borderRadius: 10,
+                  padding: "2px 4px",
                   border: "1px solid #ddd",
-                  width: 120,
-                  margin: "0 auto",
+                  width: "fit-content",
+                  gap: 4,
                 }}
               >
                 <button
@@ -207,18 +228,28 @@ export default function AnionGap() {
                     )
                   }
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 30,
+                    height: 30,
                     border: "none",
                     background: "none",
                     fontSize: 20,
                     cursor: "pointer",
-                    color: "#666",
+                    color: "#555",
+                    lineHeight: 1,
+                    padding: 0,
                   }}
                 >
                   −
                 </button>
-                <div style={{ flex: 1, fontWeight: 700, fontSize: 16 }}>
+                <div
+                  style={{
+                    minWidth: 40,
+                    textAlign: "center",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: "#222",
+                  }}
+                >
                   {albumin.toFixed(1)}
                 </div>
                 <button
@@ -228,13 +259,15 @@ export default function AnionGap() {
                     )
                   }
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 30,
+                    height: 30,
                     border: "none",
                     background: "none",
                     fontSize: 20,
                     cursor: "pointer",
-                    color: "#666",
+                    color: "#555",
+                    lineHeight: 1,
+                    padding: 0,
                   }}
                 >
                   +
@@ -242,13 +275,15 @@ export default function AnionGap() {
               </div>
             </div>
 
+            {/* ── Corrected AG ───────────────────────────────────────── */}
             <div className="ag-albumin-col">
               <div
                 style={{
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: 700,
                   color: "#444",
                   marginBottom: 8,
+                  lineHeight: 1.4,
                 }}
               >
                 Corrected AG for Serum Albumin
@@ -257,7 +292,7 @@ export default function AnionGap() {
                 style={{
                   background: "#bdbdbd",
                   color: "#333",
-                  padding: "8px 24px",
+                  padding: "8px 20px",
                   borderRadius: 4,
                   display: "inline-block",
                   fontWeight: 700,
@@ -313,7 +348,7 @@ export default function AnionGap() {
                   padding: "8px 12px",
                   fontWeight: 700,
                   fontSize: 16,
-                  marginTop: -10,
+                  marginTop: 0,
                 }}
               >
                 {na}
@@ -400,6 +435,7 @@ export default function AnionGap() {
               </div>
             </div>
           </div>
+        </div>
         </div>
 
         {/* Footer Result — uses effectiveAG, matching Android's showAnionGapResult() */}
@@ -495,12 +531,11 @@ export default function AnionGap() {
               style={{ width: "100%" }}
             />
           </div>
-          {!isHco3Fixed && (
-            <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 20 }}>
               <label
                 style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
               >
-                HCO3 ({hco3})
+                HCO3 ({hco3}){isHco3Fixed && <span style={{ fontWeight: 400, fontSize: 12, color: "#888", marginLeft: 8 }}>(from ABG)</span>}
               </label>
               <input
                 type="range"
@@ -511,16 +546,6 @@ export default function AnionGap() {
                 style={{ width: "100%" }}
               />
             </div>
-          )}
-          {isHco3Fixed && (
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 700 }}
-              >
-                HCO3 : {hco3}
-              </label>
-            </div>
-          )}
         </div>
       </div>
     </>

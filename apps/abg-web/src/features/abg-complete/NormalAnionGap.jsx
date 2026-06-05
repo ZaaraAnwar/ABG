@@ -56,7 +56,7 @@ export default function NormalAnionGap() {
       {/* Top Gray Section */}
       <div
         style={{
-          background: "#e5e5e5",
+          background: "#ECEEF5",
           padding: "40px 20px",
           display: "flex",
           flexDirection: "column",
@@ -70,7 +70,7 @@ export default function NormalAnionGap() {
         <div style={{ width: "100%", maxWidth: 600 }}>
           {/* Urinary Na+ */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#333", fontSize: 15 }}>
+            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#111", fontSize: 15 }}>
               Urinary Na<sup style={{ fontSize: 10 }}>+</sup>
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -83,20 +83,20 @@ export default function NormalAnionGap() {
                   flex: 1,
                   padding: "12px 16px",
                   borderRadius: 6,
-                  border: "1px solid #d1d1d1",
+                  border: "1px solid #8302aaff",
                   fontSize: 15,
                   outline: "none",
                   background: "#fff",
                   boxShadow: "inset 0 1px 3px rgba(0,0,0,0.05)",
                 }}
               />
-              <span style={{ color: "#777", fontSize: 14, width: 65, textAlign: "left" }}>mmol/day</span>
+              <span style={{ color: "#444", fontSize: 14, width: 65, textAlign: "left" }}>mmol/day</span>
             </div>
           </div>
 
           {/* Urinary K+ */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#333", fontSize: 15 }}>
+            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#111", fontSize: 15 }}>
               Urinary K<sup style={{ fontSize: 10 }}>+</sup>
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -109,20 +109,20 @@ export default function NormalAnionGap() {
                   flex: 1,
                   padding: "12px 16px",
                   borderRadius: 6,
-                  border: "1px solid #d1d1d1",
+                  border: "1px solid #8302aaff",
                   fontSize: 15,
                   outline: "none",
                   background: "#fff",
                   boxShadow: "inset 0 1px 3px rgba(0,0,0,0.05)",
                 }}
               />
-              <span style={{ color: "#777", fontSize: 14, width: 65, textAlign: "left" }}>mmol/L</span>
+              <span style={{ color: "#444", fontSize: 14, width: 65, textAlign: "left" }}>mmol/L</span>
             </div>
           </div>
 
           {/* Urinary Cl- */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#333", fontSize: 15 }}>
+            <label style={{ display: "block", marginBottom: 6, fontWeight: 600, color: "#111", fontSize: 15 }}>
               Urinary Cl<sup style={{ fontSize: 10 }}>−</sup>
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -135,7 +135,7 @@ export default function NormalAnionGap() {
                   flex: 1,
                   padding: "12px 16px",
                   borderRadius: 6,
-                  border: "1px solid #d1d1d1",
+                  border: "1px solid #8302aaff",
                   fontSize: 15,
                   outline: "none",
                   background: "#fff",
@@ -155,18 +155,18 @@ export default function NormalAnionGap() {
         <div style={{ width: "100%", maxWidth: 600, minHeight: 120 }}>
           {interpretation ? (
             <div style={{ padding: 24, borderRadius: 8, background: `${interpretation.color}10`, border: `1px solid ${interpretation.color}40`, textAlign: "center" }}>
-               <div style={{ fontSize: 16, marginBottom: 12, color: "#555", fontWeight: 600 }}>
+               <div style={{ fontSize: 16, marginBottom: 12, color: "#111", fontWeight: 600 }}>
                  Urinary Anion Gap = {interpretation.uag.toFixed(1)}
                </div>
                <div style={{ fontSize: 18, fontWeight: 700, color: interpretation.color, marginBottom: 8 }}>
                  {interpretation.title}
                </div>
-               <div style={{ fontSize: 15, color: "#333", lineHeight: 1.5 }}>
+               <div style={{ fontSize: 15, color: "#111", lineHeight: 1.5 }}>
                  {interpretation.text}
                </div>
             </div>
           ) : (
-            <div style={{ textAlign: "center", color: "#999", fontStyle: "italic", marginTop: 40 }}>
+            <div style={{ textAlign: "center", color: "#555", fontStyle: "italic", marginTop: 40 }}>
               Enter all three urinary electrolytes to view the Urinary Anion Gap interpretation.
             </div>
           )}
