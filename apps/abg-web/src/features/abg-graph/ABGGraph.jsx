@@ -272,8 +272,7 @@ export default function ABGGraph() {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-end",
           marginBottom: 8,
           flexShrink: 0,
         }}
@@ -283,10 +282,8 @@ export default function ABGGraph() {
             window.location.href = "https://abg.leadows.com/abg-graph-info/";
           }}
           style={{
-            position: "absolute",
-            right: 16,
-            top: 10,
             cursor: "pointer",
+            padding: 4,
           }}
         >
           <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />

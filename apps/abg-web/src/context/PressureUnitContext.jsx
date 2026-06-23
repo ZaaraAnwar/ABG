@@ -6,7 +6,7 @@ const STORAGE_KEY = "abg_pressure_unit";
 export function PressureUnitProvider({ children }) {
   const [unit, setUnit] = useState(() => {
     const savedUnit = localStorage.getItem(STORAGE_KEY);
-    return savedUnit === "mmHg" || savedUnit === "kPa" ? savedUnit : "kPa";
+    return savedUnit === "mmHg" || savedUnit === "kPa" ? savedUnit : "mmHg";
   });
 
   useEffect(() => {

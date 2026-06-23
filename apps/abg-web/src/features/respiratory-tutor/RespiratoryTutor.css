@@ -1,0 +1,150 @@
+.respiratory-tutor-container {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    color: #111;
+    overscroll-behavior: none;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #f2f2f7;
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.respiratory-tutor-container * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.respiratory-tutor-container .topbar {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    padding: 10px 0 0;
+}
+
+.respiratory-tutor-container .nav-title {
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    padding: 4px 0 10px;
+    color: #007AFF;
+    letter-spacing: -.01em;
+}
+
+.respiratory-tutor-container .tabrow {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 4px;
+}
+.respiratory-tutor-container .tabrow::-webkit-scrollbar {
+    display: none;
+}
+.respiratory-tutor-container .tabrow button {
+    flex-shrink: 0;
+    padding: 9px 13px;
+    border: none;
+    background: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8e8e93;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    outline: none;
+    -webkit-appearance: none;
+}
+.respiratory-tutor-container .tabrow button.on {
+    color: #007AFF;
+    border-bottom-color: #007AFF;
+}
+
+.respiratory-tutor-container .page {
+    display: none;
+    padding: 12px 14px 60px;
+}
+.respiratory-tutor-container .page.on {
+    display: block;
+}
+
+.respiratory-tutor-container .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 13px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+.respiratory-tutor-container .hd {
+    font-size: 10px;
+    font-weight: 700;
+    color: #8e8e93;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+}
+.respiratory-tutor-container .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.respiratory-tutor-container .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.respiratory-tutor-container .box { background: #f2f2f7; border-radius: 10px; padding: 10px 6px; text-align: center; }
+.respiratory-tutor-container .bl { font-size: 11px; font-weight: 600; color: #666; margin-bottom: 2px; }
+.respiratory-tutor-container .bv { font-size: 19px; font-weight: 500; color: #111; }
+.respiratory-tutor-container .bu { font-size: 9px; color: #aaa; }
+
+.respiratory-tutor-container .row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.respiratory-tutor-container .row label { font-size: 12px; color: #666; min-width: 84px; flex-shrink: 0; }
+.respiratory-tutor-container .row input[type=range] { flex: 1; accent-color: #007AFF; }
+.respiratory-tutor-container .rv { font-size: 12px; font-weight: 600; min-width: 52px; text-align: right; }
+
+.respiratory-tutor-container .eq { font-family: monospace; font-size: 10.5px; background: #f2f2f7; padding: 8px 10px; border-radius: 9px; color: #555; margin: 8px 0; line-height: 1.65; white-space: pre-wrap; word-break: break-all; }
+
+.respiratory-tutor-container .ok { background: #d1f2e2; color: #1a7a3d; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin: 8px 0; line-height: 1.5; }
+.respiratory-tutor-container .warn { background: #fff3d1; color: #7a5c00; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin: 8px 0; line-height: 1.5; }
+.respiratory-tutor-container .danger { background: #fde8e8; color: #9b2020; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin: 8px 0; line-height: 1.5; }
+.respiratory-tutor-container .info { background: #deeeff; color: #1a4a7a; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin: 8px 0; line-height: 1.5; }
+
+.respiratory-tutor-container .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 7px; font-weight: 600; color: #fff; }
+.respiratory-tutor-container .dietb { display: block; text-align: center; padding: 7px; border-radius: 10px; font-size: 13px; font-weight: 600; margin: 8px 0; color: #fff; }
+
+.respiratory-tutor-container .sens { width: 100%; border-collapse: collapse; font-size: 11px; }
+.respiratory-tutor-container .sens th { font-size: 9px; color: #8e8e93; text-transform: uppercase; padding: 5px 3px; text-align: center; border-bottom: .5px solid #eee; }
+.respiratory-tutor-container .sens td { padding: 6px 3px; text-align: center; border-bottom: .5px solid #f0f0f0; font-family: monospace; }
+.respiratory-tutor-container .sens .hi td { background: #deeeff; color: #1a4a7a; font-weight: 600; }
+
+.respiratory-tutor-container .qopt { width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 7px; border-radius: 11px; border: .5px solid #d1d1d6; background: #f9f9f9; color: #111; font-size: 13px; cursor: pointer; display: block; -webkit-appearance: none; }
+.respiratory-tutor-container .qopt.correct { background: #d1f2e2; color: #1a7a3d; border-color: #86dba6; }
+.respiratory-tutor-container .qopt.wrong { background: #fde8e8; color: #9b2020; border-color: #f5b7b7; }
+
+.respiratory-tutor-container .ibtn { width: 100%; padding: 13px; background: #007AFF; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; margin-top: 8px; cursor: pointer; display: block; -webkit-appearance: none; }
+
+.respiratory-tutor-container .ir { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: .5px solid #f5f5f5; }
+.respiratory-tutor-container .ir:last-child { border: none; }
+.respiratory-tutor-container .ir span:first-child { color: #666; }
+
+.respiratory-tutor-container .step { display: flex; gap: 10px; padding: 8px 0; border-bottom: .5px solid #f0f0f0; }
+.respiratory-tutor-container .step:last-child { border: none; }
+.respiratory-tutor-container .snum { width: 22px; height: 22px; border-radius: 50%; background: #007AFF; color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.respiratory-tutor-container .stitle { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.respiratory-tutor-container .sdesc { font-size: 11px; color: #666; line-height: 1.5; }
+
+.respiratory-tutor-container .chk { display: flex; gap: 10px; padding: 8px 0; border-bottom: .5px solid #f0f0f0; align-items: flex-start; }
+.respiratory-tutor-container .chk:last-child { border: none; }
+.respiratory-tutor-container .chk input[type=checkbox] { width: 20px; height: 20px; accent-color: #007AFF; flex-shrink: 0; margin-top: 1px; }
+.respiratory-tutor-container .ct { font-size: 13px; font-weight: 500; }
+.respiratory-tutor-container .cd { font-size: 11px; color: #8e8e93; margin-top: 1px; }
+
+.respiratory-tutor-container .wseg { display: flex; background: #e5e5e5; border-radius: 9px; padding: 2px; margin-bottom: 12px; gap: 2px; }
+.respiratory-tutor-container .wseg button { flex: 1; padding: 6px 2px; border: none; border-radius: 7px; font-size: 10px; font-weight: 500; cursor: pointer; background: transparent; color: #666; -webkit-appearance: none; }
+.respiratory-tutor-container .wseg button.on { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+.respiratory-tutor-container .lbar { margin-bottom: 8px; }
+.respiratory-tutor-container .lbrow { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+.respiratory-tutor-container .lbt { height: 7px; background: #e5e5e5; border-radius: 4px; overflow: hidden; }
+.respiratory-tutor-container .lbf { height: 100%; border-radius: 4px; }
+
+.respiratory-tutor-container .prog { height: 5px; background: #e5e5e5; border-radius: 3px; margin-bottom: 10px; overflow: hidden; }
+.respiratory-tutor-container .progf { height: 100%; background: #007AFF; border-radius: 3px; transition: width .3s; }
+
+.respiratory-tutor-container select { width: 100%; padding: 8px 10px; border: none; border-radius: 10px; background: #f2f2f7; color: #111; font-size: 13px; margin-bottom: 8px; -webkit-appearance: none; }
+.respiratory-tutor-container .preset-btn { padding: 6px 10px; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; margin: 3px; }

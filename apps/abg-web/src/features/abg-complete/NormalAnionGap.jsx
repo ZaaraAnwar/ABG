@@ -177,7 +177,7 @@ export default function NormalAnionGap() {
         <div style={{ display: "flex", justifyContent: "center", marginTop: 40, marginBottom: 20 }}>
           <div
             onClick={() => {
-              window.location.href = "https://abg.leadows.com/alkalosis-flowchart/";
+              window.location.href = "https://abg.leadows.com/acidosis-flowchart/";
             }}
             style={{
               width: 48,

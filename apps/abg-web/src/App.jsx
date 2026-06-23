@@ -16,6 +16,7 @@ import VentilatorPanel from "./features/ag-tutor/agtutor";
 import AGTutor from "./features/ag-tutor/agtutor";
 import OxygenDissociationCurve from "./features/odc/Oxygendissociationcurve";
 import Aagradient from "./features/a_aGradient/aagradient";
+import RespiratoryTutor from "./features/respiratory-tutor/RespiratoryTutor";
 
 function App({ chartType = "abg-graph" }) {
   if (chartType === "acute-chronic") {
@@ -68,6 +69,10 @@ function App({ chartType = "abg-graph" }) {
 
   if (chartType === "aa-gradient") {
     return <Aagradient />;
+  }
+
+  if (chartType === "respiratory-tutor") {
+    return <RespiratoryTutor />;
   }
 
   return <ABGGraph />;

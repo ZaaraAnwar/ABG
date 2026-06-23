@@ -4,7 +4,7 @@ import { usePressureUnit } from "../context/PressureUnitContext";
 export default function PressureUnitSelector() {
   const { unit, setUnit } = usePressureUnit();
 
-  const options = ["kPa", "mmHg"];
+  const options = ["mmHg", "kPa"];
 
   return (
     <div

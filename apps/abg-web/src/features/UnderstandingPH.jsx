@@ -84,11 +84,9 @@ export default function UnderstandingPH() {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-end",
           marginBottom: 8,
           flexShrink: 0,
-          position: "relative",
         }}
       >
         <div
@@ -96,7 +94,10 @@ export default function UnderstandingPH() {
             window.location.href =
               "https://abg.leadows.com/understanding-ph-info/";
           }}
-          style={{ position: "absolute", right: 0, top: 0, cursor: "pointer" }}
+          style={{
+            cursor: "pointer",
+            padding: 4,
+          }}
         >
           <InfoOutlinedIcon style={{ fontSize: 22, color: "#6b4fa0" }} />
         </div>
@@ -251,6 +252,26 @@ export default function UnderstandingPH() {
           >
             H⁺ (nmol/L)
           </text>
+
+          {/* Main pH Axis */}
+          <line
+            x1="0"
+            y1={SVG_H}
+            x2={mapX(7.4)}
+            y2={SVG_H}
+            stroke="#b71c1c"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <line
+            x1={mapX(7.4)}
+            y1={SVG_H}
+            x2={SVG_W}
+            y2={SVG_H}
+            stroke="#0d47a1"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
 
           {/* Y grid */}
           {[0, 20, 40, 60, 80, 100, 120, 140, 160].map((val) => (

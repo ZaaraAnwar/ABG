@@ -1,6 +1,6 @@
 import { usePressureUnit } from "../context/PressureUnitContext";
 
-const units = ["kPa", "mmHg"];
+const units = ["mmHg", "kPa"];
 
 export default function PressureUnits() {
   const { unit: selected, setUnit } = usePressureUnit();

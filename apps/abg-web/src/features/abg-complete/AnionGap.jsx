@@ -144,33 +144,54 @@ export default function AnionGap() {
           .ag-root { padding: 24px 12px 40px; }
           .ag-card { padding: 24px 16px; border-radius: 12px; }
 
-          /* Stack albumin panel above the graph */
+          /* Bring albumin panel closer to graph so they look like one unit */
           .ag-content {
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
             align-items: center;
           }
 
-          .ag-albumin-panel {
+          /* Align columns perfectly by matching gap and row justification */
+          .ag-albumin-panel, .ag-graph {
             width: 100%;
             flex-direction: row;
-            gap: 16px;
-            align-items: stretch;
-            justify-content: center;
-          }
-          .ag-albumin-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            gap: 40px;
             justify-content: center;
           }
 
-          /* Shrink graph on smaller screens */
           .ag-graph {
-            gap: 40px;
             height: 260px;
-            width: 100%;
+          }
+
+          /* Give all top/bottom columns identical widths for perfect vertical alignment */
+          .ag-albumin-col, .ag-na-wrapper, .ag-comp-wrapper {
+            width: 118px; /* match stepper exactly */
+            flex: none;
+            display: flex;
+            align-items: center;
+          }
+
+          .ag-albumin-col {
+            flex-direction: column;
+            justify-content: flex-end; /* push content to the bottom to sit right above the bars */
+          }
+
+          /* Keep comparative bar going upwards */
+          .ag-comp-wrapper {
+            flex-direction: column-reverse;
+          }
+
+          /* Keep Na bar and its value side-by-side but perfectly center them horizontally */
+          .ag-na-wrapper {
+            justify-content: center !important;
+          }
+
+          /* Corrected AG match bar width (60px) */
+          .ag-corrected-val {
+            width: 60px !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            text-align: center;
           }
 
           .ag-footer-btn { margin-top: 24px; font-size: 16px; }
@@ -179,15 +200,22 @@ export default function AnionGap() {
 
         /* ── Mobile  ≤ 420px ──────────────────────────────────────────── */
         @media (max-width: 420px) {
-          .ag-root { padding: 16px 8px 28px; }
+          .ag-root { padding: 16px 8px 28px; } 
           .ag-card { padding: 16px 10px; }
 
+          .ag-content {
+            gap: 16px;
+          }
+
+          .ag-albumin-panel, .ag-graph {
+            gap: 24px;
+          }
+
           .ag-graph {
-            gap: 28px;
             height: 200px;
           }
 
-          .ag-footer-btn { font-size: 14px; padding: 13px; }
+          .ag-footer-btn { font-size: 14px; padding: 13px; margin-top: 24px; }
         }
       `}</style>
 
@@ -289,6 +317,7 @@ export default function AnionGap() {
                 Corrected AG for Serum Albumin
               </div>
               <div
+                className="ag-corrected-val"
                 style={{
                   background: "#bdbdbd",
                   color: "#333",
@@ -309,7 +338,7 @@ export default function AnionGap() {
           {/* Center: Graph — all original markup, only wrapper class changed */}
           <div className="ag-graph">
             {/* Na bar */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <div className="ag-na-wrapper" style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
               <div
                 style={{
                   display: "flex",
@@ -342,13 +371,19 @@ export default function AnionGap() {
                 </div>
               </div>
               <div
+                className="ag-na-valbox"
                 style={{
                   background: "#245576",
                   color: "#fff",
-                  padding: "8px 12px",
+                  width: 54,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   fontWeight: 700,
                   fontSize: 16,
                   marginTop: 0,
+                  boxSizing: "border-box",
                 }}
               >
                 {na}
@@ -357,6 +392,7 @@ export default function AnionGap() {
 
             {/* Comparative bar */}
             <div
+              className="ag-comp-wrapper"
               style={{
                 display: "flex",
                 flexDirection: "column-reverse",
@@ -365,6 +401,7 @@ export default function AnionGap() {
             >
               {/* Cl- */}
               <div
+                className="ag-bar-col"
                 style={{
                   width: 60,
                   height: getH(cl),
@@ -388,6 +425,7 @@ export default function AnionGap() {
               </div>
               {/* AG */}
               <div
+                className="ag-bar-col"
                 style={{
                   width: 60,
                   height: getH(Math.max(2, ag)),
@@ -411,6 +449,7 @@ export default function AnionGap() {
               </div>
               {/* HCO3 */}
               <div
+                className="ag-bar-col"
                 style={{
                   width: 60,
                   height: getH(hco3),

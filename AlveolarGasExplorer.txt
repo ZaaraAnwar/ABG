@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -13,6 +13,36 @@ import {
   updatePatientRecord,
   deleteAllHistory,
 } from "./historyStorage";
+
+// New data & helpers for Alveolar Gas Explorer
+const ALT_DATA = [
+  { ft: 0,     m: 0,    pb: 760, paco2: 40, spo2: 98, symptoms: "Normal", color: "#22c55e" },
+  { ft: 5000,  m: 1524, pb: 632, paco2: 38, spo2: 95, symptoms: "Mild fatigue at exertion", color: "#84cc16" },
+  { ft: 8000,  m: 2438, pb: 565, paco2: 36, spo2: 92, symptoms: "Slight headache possible (cabin altitude)", color: "#eab308" },
+  { ft: 10000, m: 3048, pb: 523, paco2: 35, spo2: 88, symptoms: "Headache, shortness of breath", color: "#f97316" },
+  { ft: 15000, m: 4572, pb: 429, paco2: 32, spo2: 80, symptoms: "Dizziness, impaired judgment", color: "#ef4444" },
+  { ft: 20000, m: 6096, pb: 349, paco2: 28, spo2: 70, symptoms: "Severe hypoxia, supplemental O₂ required", color: "#dc2626" },
+  { ft: 25000, m: 7620, pb: 282, paco2: 24, spo2: 60, symptoms: "Loss of consciousness imminent", color: "#991b1b" },
+  { ft: 30000, m: 9144, pb: 226, paco2: 20, spo2: 50, symptoms: "Incompatible with consciousness", color: "#7f1d1d" },
+];
+
+function calcExplorerPAO2(pb, paco2, fio2 = 0.21) {
+  return fio2 * (pb - 47) - paco2 / 0.8;
+}
+
+function calcExplorerPaO2(pao2) {
+  return Math.max(pao2 - 8, 0);
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function usePrevious(value) {
+  const ref = useRef(value);
+  useEffect(() => { ref.current = value; }, [value]);
+  return ref.current;
+}
 
 // ─── Sub-components defined OUTSIDE Aagradient ───────────────────────────────
 // This is the fix: defining them inside caused remounts on every keystroke.
@@ -957,6 +987,42 @@ const HistoryView = ({ historyData }) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 function Aagradient() {
+  const [altIdx, setAltIdx] = useState(0);
+  const [animPAO2, setAnimPAO2] = useState(null);
+  const [animSPO2, setAnimSPO2] = useState(null);
+  const [altFio2, setAltFio2] = useState(21);
+  const prevAltIdx = usePrevious(altIdx) || 0;
+  const rafRef = useRef(null);
+
+  const explorerD = ALT_DATA[altIdx];
+  const explorerPao2 = calcExplorerPAO2(explorerD.pb, explorerD.paco2, altFio2 / 100);
+  const explorerPao2Clamped = Math.max(explorerPao2, 0);
+  const explorerPao2Prev = calcExplorerPAO2(ALT_DATA[prevAltIdx].pb, ALT_DATA[prevAltIdx].paco2, altFio2 / 100);
+
+  useEffect(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    const start = performance.now();
+    const duration = 600;
+    const fromPAO2 = explorerPao2Prev;
+    const toPAO2 = explorerPao2Clamped;
+    const fromSPO2 = ALT_DATA[prevAltIdx].spo2;
+    const toSPO2 = explorerD.spo2;
+
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      setAnimPAO2(lerp(fromPAO2, toPAO2, ease));
+      setAnimSPO2(lerp(fromSPO2, toSPO2, ease));
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [altIdx, altFio2, explorerD.spo2, explorerPao2Clamped, explorerPao2Prev]);
+
+  const displayPAO2 = animPAO2 !== null ? animPAO2 : explorerPao2Clamped;
+  const displaySPO2 = animSPO2 !== null ? animSPO2 : explorerD.spo2;
+  const explorerAaGradient = Math.max(explorerPao2Clamped - calcExplorerPaO2(explorerPao2Clamped), 0);
+
   const [fiO2, setFiO2] = useState(21);
   const [paCO2, setPaCO2] = useState(40);
   const [paO2, setPaO2] = useState(100);
@@ -993,7 +1059,7 @@ function Aagradient() {
   const calcAaGradient = () =>
     ((fiO2 / 100) * (760 - 47) - paCO2 / 0.8 - paO2).toFixed(2);
   const calcPao2Fio2 = () => (paO2 / (fiO2 / 100)).toFixed(2);
-
+ 
   const handleAddSubmit = () => {
     if (!patientIdInput.trim() || !patientNameInput.trim()) {
       alert("Please enter both Patient ID and Name.");
@@ -1127,7 +1193,8 @@ function Aagradient() {
         {view === "history" ? (
           <HistoryView historyData={historyData} />
         ) : (
-          <div
+          <>
+            <div
             style={{
               width: "100%",
               maxWidth: "90rem",
@@ -1371,40 +1438,16 @@ function Aagradient() {
                               color: "#111827",
                             }}
                           >
-                            <td colSpan={2} style={{ padding: "0.75rem 0" }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    flex: 1,
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                    fontSize: "1rem",
-                                  }}
-                                >
+                            <td
+                              colSpan={2}
+                              style={{ padding: "0.75rem 0" }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
                                   {calculatedPAO2.toFixed(2)}
                                 </span>
-                                <span
-                                  style={{
-                                    padding: "0 0.25rem",
-                                    color: "#9ca3af",
-                                    fontSize: "0.875rem",
-                                  }}
-                                >
-                                  −
-                                </span>
-                                <span
-                                  style={{
-                                    flex: 1,
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                    fontSize: "1rem",
-                                  }}
-                                >
+                                <span style={{ padding: "0 0.25rem", color: "#9ca3af", fontSize: "0.875rem" }}>−</span>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
                                   {paO2}
                                 </span>
                               </div>
@@ -1462,40 +1505,16 @@ function Aagradient() {
                               color: "#111827",
                             }}
                           >
-                            <td colSpan={2} style={{ padding: "0.75rem 0" }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    flex: 1,
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                    fontSize: "1rem",
-                                  }}
-                                >
+                            <td
+                              colSpan={2}
+                              style={{ padding: "0.75rem 0" }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
                                   {paO2}
                                 </span>
-                                <span
-                                  style={{
-                                    padding: "0 0.25rem",
-                                    color: "#9ca3af",
-                                    fontSize: "0.875rem",
-                                  }}
-                                >
-                                  ÷
-                                </span>
-                                <span
-                                  style={{
-                                    flex: 1,
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                    fontSize: "1rem",
-                                  }}
-                                >
+                                <span style={{ padding: "0 0.25rem", color: "#9ca3af", fontSize: "0.875rem" }}>÷</span>
+                                <span style={{ flex: 1, textAlign: "center", fontWeight: "bold", fontSize: "1rem" }}>
                                   {(fiO2 / 100).toFixed(2)}
                                 </span>
                               </div>
@@ -1765,6 +1784,195 @@ function Aagradient() {
               </div>
             </div>
           </div>
+
+          {/* --- New Alveolar Gas Explorer App --- */}
+          <div style={{ padding: "32px 16px", width: "100%", maxWidth: "1000px", margin: "0 auto", backgroundColor: "white", color: "#111827", fontFamily: "sans-serif" }}>
+            <div style={{ marginBottom: "2rem", paddingBottom: "1rem", borderBottom: "1px solid #e5e7eb" }}>
+              <div style={{ fontSize: 11, letterSpacing: 4, color: "#6366f1", textTransform: "uppercase", fontFamily: "monospace", marginBottom: 4, fontWeight: "bold" }}>Respiratory Physiology</div>
+              <h2 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: "#111827" }}>
+                Alveolar Gas Explorer
+              </h2>
+              <div style={{ fontFamily: "monospace", fontSize: 13, color: "#6b7280", marginTop: "0.5rem", fontWeight: "bold" }}>
+                P<sub>A</sub>O₂ = F<sub>i</sub>O₂(P<sub>B</sub> − 47) − P<sub>a</sub>CO₂ / 0.8
+              </div>
+            </div>
+
+            {/* Altitude Slider */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#6366f1", fontFamily: "monospace", fontWeight: "bold" }}>Altitude</div>
+                <div style={{ fontFamily: "monospace", fontSize: 22, color: explorerD.color, transition: "color 0.4s", fontWeight: "bold" }}>
+                  {explorerD.ft.toLocaleString()} ft &nbsp;<span style={{ fontSize: 14, color: "#6b7280", fontWeight: "normal" }}>/ {explorerD.m.toLocaleString()} m</span>
+                </div>
+              </div>
+
+              <div style={{ position: "relative", padding: "10px 0" }}>
+                <input
+                  type="range"
+                  min={0} max={ALT_DATA.length - 1} step={1}
+                  value={altIdx}
+                  onChange={e => setAltIdx(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    appearance: "none",
+                    height: 6,
+                    borderRadius: 3,
+                    background: `linear-gradient(to right, ${explorerD.color} 0%, ${explorerD.color} ${(altIdx / (ALT_DATA.length - 1)) * 100}%, #e5e7eb ${(altIdx / (ALT_DATA.length - 1)) * 100}%, #e5e7eb 100%)`,
+                    outline: "none",
+                    cursor: "pointer",
+                    transition: "background 0.4s",
+                  }}
+                  className="custom-slider"
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                  {ALT_DATA.map((a, i) => (
+                    <button
+                      key={a.ft}
+                      onClick={() => setAltIdx(i)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "monospace", fontSize: 10, fontWeight: "bold",
+                        color: i === altIdx ? explorerD.color : "#6b7280",
+                        transition: "color 0.3s",
+                        padding: "2px 0",
+                      }}
+                    >
+                      {a.ft === 0 ? "0" : `${a.ft / 1000}k`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* FiO2 control */}
+            <div style={{ marginBottom: 36, display: "flex", alignItems: "center", gap: 20 }}>
+              <div style={{ fontSize: 13, letterSpacing: 3, textTransform: "uppercase", color: "#6366f1", fontFamily: "monospace", whiteSpace: "nowrap", fontWeight: "bold" }}>F<sub>i</sub>O₂</div>
+              <input
+                type="range" min={21} max={100} step={1}
+                value={altFio2}
+                onChange={e => setAltFio2(Number(e.target.value))}
+                style={{
+                  flex: 1, appearance: "none", height: 6, borderRadius: 3,
+                  background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((altFio2 - 21) / 79) * 100}%, #e5e7eb ${((altFio2 - 21) / 79) * 100}%, #e5e7eb 100%)`,
+                  outline: "none", cursor: "pointer",
+                }}
+                className="custom-slider"
+              />
+              <div style={{ fontFamily: "monospace", fontSize: 18, color: "#4f46e5", minWidth: 60, textAlign: "right", fontWeight: "bold" }}>
+                {altFio2}%
+                {altFio2 === 21 && <span style={{ fontSize: 10, color: "#6b7280", marginLeft: 6, fontWeight: "normal" }}>room air</span>}
+                {altFio2 === 100 && <span style={{ fontSize: 10, color: "#6b7280", marginLeft: 6, fontWeight: "normal" }}>100% O₂</span>}
+              </div>
+            </div>
+
+            {/* Big metrics */}
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+              {[
+                { label: "PAO₂", value: displayPAO2.toFixed(1), unit: "mmHg", sub: "Alveolar O₂", accent: explorerD.color },
+                { label: "SpO₂", value: displaySPO2.toFixed(0), unit: "%", sub: "Est. sat.", accent: explorerD.color },
+                { label: "PB", value: explorerD.pb, unit: "mmHg", sub: "Barometric", accent: "#6366f1" },
+              ].map(m => (
+                <div key={m.label} style={{
+                  background: "#f9fafb",
+                  border: `1px solid #e5e7eb`,
+                  borderRadius: 12,
+                  padding: "20px 24px",
+                  position: "relative",
+                  overflow: "hidden",
+                }}>
+                  <div style={{
+                    position: "absolute", top: 0, left: 0, right: 0, height: 4,
+                    background: m.accent, transition: "background 0.4s",
+                  }} />
+                  <div style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", letterSpacing: 2, marginBottom: 8, fontWeight: "bold" }}>{m.sub}</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                    <span style={{ fontSize: 38, fontWeight: 700, color: m.accent, transition: "color 0.4s", fontVariantNumeric: "tabular-nums" }}>
+                      {typeof m.value === "number" ? m.value : m.value}
+                    </span>
+                    <span style={{ fontSize: 14, color: "#6b7280", fontFamily: "monospace", fontWeight: "bold" }}>{m.unit}</span>
+                  </div>
+                  <div style={{ fontFamily: "monospace", fontSize: 13, color: "#374151", marginTop: 4, fontWeight: "bold" }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* SpO2 Gauge */}
+            <div style={{ marginBottom: 32, background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "20px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexDirection: isMobile ? "column" : "row", gap: isMobile ? "0.5rem" : "0" }}>
+                <div style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", letterSpacing: 2, fontWeight: "bold" }}>OXYGEN SATURATION (SpO₂)</div>
+                <div style={{ fontFamily: "monospace", fontSize: 13, color: explorerD.color, transition: "color 0.4s", fontWeight: "bold", textAlign: isMobile ? "center" : "right" }}>{explorerD.symptoms}</div>
+              </div>
+              <div style={{ height: 12, background: "#e5e7eb", borderRadius: 6, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${displaySPO2}%`,
+                  background: `linear-gradient(to right, #ef4444, ${explorerD.color})`,
+                  borderRadius: 6,
+                  transition: "width 0.05s linear, background 0.4s",
+                }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "monospace", fontSize: 11, color: "#6b7280", marginTop: 6, fontWeight: "bold" }}>
+                <span>0%</span><span>50%</span><span>75%</span><span>90%</span><span>100%</span>
+              </div>
+            </div>
+
+            {/* Bar chart — all altitudes */}
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "24px 24px 16px" }}>
+              <div style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", letterSpacing: 2, marginBottom: 20, fontWeight: "bold" }}>PAO₂ ACROSS ALL ALTITUDES</div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 140 }}>
+                {ALT_DATA.map((a, i) => {
+                  const val = Math.max(calcExplorerPAO2(a.pb, a.paco2, altFio2 / 100), 0);
+                  const pct = val / Math.max(calcExplorerPAO2(760, 40, altFio2 / 100), 100);
+                  return (
+                    <div
+                      key={a.ft}
+                      onClick={() => setAltIdx(i)}
+                      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}
+                    >
+                      <div style={{
+                        fontFamily: "monospace", fontSize: 10, fontWeight: "bold",
+                        color: i === altIdx ? a.color : "#6b7280",
+                        marginBottom: 4, transition: "color 0.3s",
+                      }}>{val.toFixed(0)}</div>
+                      <div style={{
+                        width: "100%",
+                        height: Math.max(pct * 120, 4),
+                        background: i === altIdx ? a.color : "#e5e7eb",
+                        borderRadius: "4px 4px 0 0",
+                        transition: "height 0.4s cubic-bezier(.4,0,.2,1), background 0.3s",
+                        border: i === altIdx ? `1px solid ${a.color}` : "1px solid #d1d5db",
+                      }} />
+                      <div style={{
+                        fontFamily: "monospace", fontSize: 10, fontWeight: "bold",
+                        color: i === altIdx ? a.color : "#6b7280",
+                        marginTop: 6, transition: "color 0.3s",
+                      }}>{a.ft === 0 ? "SL" : `${a.ft / 1000}k`}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Equation breakdown */}
+            <div style={{ marginTop: 24, background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "18px 24px", fontFamily: "monospace", fontSize: 13 }}>
+              <div style={{ color: "#6b7280", fontSize: 11, letterSpacing: 2, marginBottom: 10, fontWeight: "bold" }}>EQUATION BREAKDOWN AT THIS ALTITUDE</div>
+              <div style={{ color: "#374151", lineHeight: 2, fontWeight: "bold" }}>
+                <span style={{ color: "#6b7280" }}>P<sub>A</sub>O₂ =</span>{" "}
+                <span style={{ color: "#4f46e5" }}>{(altFio2 / 100).toFixed(2)}</span>
+                <span style={{ color: "#9ca3af" }}> × (</span>
+                <span style={{ color: "#06b6d4" }}>{explorerD.pb}</span>
+                <span style={{ color: "#9ca3af" }}> − 47) − </span>
+                <span style={{ color: "#ec4899" }}>{explorerD.paco2}</span>
+                <span style={{ color: "#9ca3af" }}> / 0.8</span>
+                <span style={{ color: "#6b7280" }}> = </span>
+                <span style={{ color: explorerD.color, fontWeight: 800, transition: "color 0.4s" }}>{explorerPao2Clamped.toFixed(1)} mmHg</span>
+              </div>
+              <div style={{ marginTop: 6, color: "#6b7280", fontSize: 12, fontWeight: "bold" }}>
+                FiO₂ <span style={{ color: "#4f46e5" }}>{altFio2}%</span> · PB <span style={{ color: "#06b6d4" }}>{explorerD.pb} mmHg</span> · PaCO₂ <span style={{ color: "#ec4899" }}>{explorerD.paco2} mmHg</span> · A-a gradient ≈ <span style={{ color: "#f59e0b" }}>{explorerAaGradient.toFixed(1)} mmHg</span>
+              </div>
+            </div>
+          </div>
+          </>
         )}
       </div>
     </>
@@ -1772,3 +1980,4 @@ function Aagradient() {
 }
 
 export default Aagradient;
+
