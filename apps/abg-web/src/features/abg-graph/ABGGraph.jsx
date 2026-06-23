@@ -120,7 +120,8 @@ function ScaleSlider({
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     onChange(getValueFromX(clientX));
   };
-
+ 
+  
   return (
     <div style={{ marginBottom: 10 }}>
       {/* Label + Value row */}
